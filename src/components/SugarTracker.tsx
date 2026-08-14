@@ -21,6 +21,14 @@ const QUICK_CHECKS = [
   { label: 'Random', note: 'Random check' },
 ];
 
+const INSULIN_TYPES = [
+  { value: 'Lantus', label: 'Lantus' },
+  { value: 'Humalog', label: 'Humalog' },
+  { value: 'Novolog', label: 'Novolog' },
+  { value: 'Levemir', label: 'Levemir' },
+  { value: 'Other', label: 'Other' },
+];
+
 export const SugarTracker: React.FC<SugarTrackerProps> = ({
   selectedDate,
   entries,
@@ -101,13 +109,13 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
   const statusColorMap = {
     normal: 'bg-emerald-50 text-emerald-800 border-emerald-200',
     warning: 'bg-amber-50 text-amber-800 border-amber-200',
-    danger: 'bg-red-50 text-red-800 border-red-200'
+    high: 'bg-red-50 text-red-800 border-red-200'
   };
 
   const statusBadgeMap = {
     normal: '🟢 Normal',
     warning: '🟡 Borderline',
-    danger: '🔴 High'
+    high: '🔴 High'
   };
 
   return (
@@ -188,7 +196,7 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
             </button>
           </div>
 
-          <div className={`grid grid-cols-1 gap-3 ${mode === 'insulin' ? 'sm:grid-cols-2 md:grid-cols-4' : 'sm:grid-cols-2'}`}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1">Time</label>
               <input type="time" value={time} onChange={e => setTime(e.target.value)}
@@ -205,19 +213,30 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
 
             {mode === 'insulin' && (
               <>
-                <div>
+                <div className="col-span-2">
                   <label className="block text-xs font-bold text-slate-600 mb-1">Insulin Type</label>
-                  <select value={insulinType} onChange={e => setInsulinType(e.target.value)}
-                    className="w-full text-xs font-bold p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600">
-                    <option value="Lantus">Lantus (Long-acting)</option>
-                    <option value="Humalog">Humalog (Rapid-acting)</option>
-                    <option value="Novolog">Novolog (Rapid-acting)</option>
-                    <option value="Levemir">Levemir</option>
-                    <option value="Other">Other</option>
-                  </select>
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
+                    {INSULIN_TYPES.map(t => {
+                      const isSelected = insulinType === t.value;
+                      return (
+                        <button
+                          key={t.value}
+                          type="button"
+                          onClick={() => setInsulinType(t.value)}
+                          className={`flex items-center justify-center px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all duration-150 shrink-0 select-none active:scale-95
+                            ${isSelected 
+                              ? 'bg-purple-600 border-purple-600 text-white shadow-sm' 
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                            }`}
+                        >
+                          {t.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                <div>
+                <div className="col-span-2">
                   <label className="block text-xs font-bold text-slate-600 mb-1">Insulin (Units)</label>
                   <input type="number" value={insulinUnits}
                     onChange={e => setInsulinUnits(e.target.value === '' ? '' : Number(e.target.value))}

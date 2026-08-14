@@ -19,6 +19,16 @@ const QUICK_PRESETS = [
   { label: '100ml IV', emoji: '💉', liquid: 'IV Fluid', amount: 100 },
 ];
 
+const LIQUID_TYPES = [
+  { value: 'Water', emoji: '💧' },
+  { value: 'Tea', emoji: '🍵' },
+  { value: 'Juice', emoji: '🥤' },
+  { value: 'Coffee', emoji: '☕' },
+  { value: 'Soup', emoji: '🍲' },
+  { value: 'IV Fluid', emoji: '💉' },
+  { value: 'Other', emoji: '🏷️' },
+];
+
 export const WaterTracker: React.FC<WaterTrackerProps> = ({
   selectedDate, entries, onAddEntry, onDeleteEntry
 }) => {
@@ -97,7 +107,7 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
 
       {/* Custom form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="mb-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 anim-slide-down">
+        <form onSubmit={handleSubmit} className="mb-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-4 anim-slide-down">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Time</label>
@@ -107,15 +117,32 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
               <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Amount (ml)</label>
               <input type="number" min="0" step="10" value={amountMl}
                 onChange={e => setAmountMl(e.target.value === '' ? '' : Number(e.target.value))}
-                className="input-field" placeholder="250" required />
+                className="input-field" placeholder="100" required />
             </div>
-            <div>
+            <div className="col-span-2">
               <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Liquid Type</label>
-              <select value={liquidType} onChange={e => setLiquidType(e.target.value)} className="input-field">
-                {['Water','Tea','Juice','Coffee','Soup','IV Fluid','Other'].map(v => <option key={v}>{v}</option>)}
-              </select>
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
+                {LIQUID_TYPES.map(t => {
+                  const isSelected = liquidType === t.value;
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setLiquidType(t.value)}
+                      className={`flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all duration-150 shrink-0 select-none active:scale-95
+                        ${isSelected 
+                          ? 'bg-blue-600 border-blue-600 text-white shadow-sm' 
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                    >
+                      <span className="text-sm">{t.emoji}</span>
+                      <span>{t.value}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <div>
+            <div className="col-span-2">
               <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Notes</label>
               <input type="text" value={notes} onChange={e => setNotes(e.target.value)} className="input-field" placeholder="Optional..." />
             </div>

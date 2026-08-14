@@ -11,6 +11,18 @@ interface ScheduleTrackerProps {
   onDeleteSchedule: (id: string) => Promise<void>;
 }
 
+const CATEGORIES: { value: MedicationCategory; label: string }[] = [
+  { value: 'insulin', label: 'Insulin' },
+  { value: 'oral', label: 'Oral' },
+  { value: 'iv', label: 'IV' },
+  { value: 'other', label: 'Other' },
+];
+
+const RECURRENCES: { value: MedicationRecurrence; label: string }[] = [
+  { value: 'daily', label: 'Daily' },
+  { value: 'once', label: 'Once' },
+];
+
 export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
   schedules,
   onAddSchedule,
@@ -125,8 +137,8 @@ export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
 
       {/* Form Drawer */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="mb-5 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <form onSubmit={handleSubmit} className="mb-5 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1">Medicine Name</label>
               <input
@@ -162,20 +174,6 @@ export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Category</label>
-              <select
-                value={category}
-                onChange={e => setCategory(e.target.value as MedicationCategory)}
-                className="w-full text-xs font-bold p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
-              >
-                <option value="insulin">Insulin</option>
-                <option value="oral">Oral Medication</option>
-                <option value="iv">IV Infusion</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-            <div>
               <label className="block text-xs font-bold text-slate-600 mb-1">Schedule Label</label>
               <input
                 type="text"
@@ -186,16 +184,50 @@ export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
               />
             </div>
 
-            <div>
+            <div className="col-span-1 sm:col-span-2">
+              <label className="block text-xs font-bold text-slate-600 mb-1">Category</label>
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
+                {CATEGORIES.map(c => {
+                  const isSelected = category === c.value;
+                  return (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setCategory(c.value)}
+                      className={`flex items-center justify-center px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all duration-150 shrink-0 select-none active:scale-95
+                        ${isSelected 
+                          ? 'bg-purple-600 border-purple-600 text-white shadow-sm' 
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                    >
+                      {c.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="col-span-1 sm:col-span-2">
               <label className="block text-xs font-bold text-slate-600 mb-1">Recurrence</label>
-              <select
-                value={recurrence}
-                onChange={e => setRecurrence(e.target.value as MedicationRecurrence)}
-                className="w-full text-xs font-bold p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
-              >
-                <option value="daily">Daily</option>
-                <option value="once">Once</option>
-              </select>
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
+                {RECURRENCES.map(r => {
+                  const isSelected = recurrence === r.value;
+                  return (
+                    <button
+                      key={r.value}
+                      type="button"
+                      onClick={() => setRecurrence(r.value)}
+                      className={`flex items-center justify-center px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all duration-150 shrink-0 select-none active:scale-95
+                        ${isSelected 
+                          ? 'bg-purple-600 border-purple-600 text-white shadow-sm' 
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                    >
+                      {r.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
