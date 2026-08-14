@@ -28,7 +28,8 @@ import {
   deleteMedicationSchedule,
   getRemindersForDate,
   updateReminderStatus,
-  getLocalTodayString
+  getLocalTodayString,
+  clearAllDatabaseData
 } from '@/lib/storage';
 
 import { Header } from '@/components/Header';
@@ -39,7 +40,8 @@ import { ScheduleTracker } from '@/components/ScheduleTracker';
 import { AlarmModal } from '@/components/AlarmModal';
 import { TrendsChart } from '@/components/TrendsChart';
 import { ExportReport } from '@/components/ExportReport';
-import { AlertTriangle, X, HeartPulse, ClipboardList, TrendingUp, Bell, FileDown } from 'lucide-react';
+import { Settings } from '@/components/Settings';
+import { AlertTriangle, X, HeartPulse, ClipboardList, TrendingUp, Bell, FileDown, Settings as SettingsIcon } from 'lucide-react';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
 export default function Dashboard() {
@@ -63,7 +65,48 @@ export default function Dashboard() {
   const [reminders, setReminders] = useState<MedicationReminderLog[]>([]);
   const [pendingAlarm, setPendingAlarm] = useState<MedicationReminderLog | null>(null);
   const [prefilledInsulin, setPrefilledInsulin] = useState<{ type: string; units: number } | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'trends' | 'schedules' | 'export'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'trends' | 'schedules' | 'export' | 'settings'>('dashboard');
+  const [patientName, setPatientName] = useState<string>('Yousef');
+  const [alarmTone, setAlarmTone] = useState<string>('chime');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedName = localStorage.getItem('patient_monitor_name');
+      if (storedName) setPatientName(storedName);
+      
+      const storedTone = localStorage.getItem('patient_monitor_alarm_tone');
+      if (storedTone) setAlarmTone(storedTone);
+    }
+  }, []);
+
+  const handleUpdatePatientName = (name: string) => {
+    setPatientName(name);
+    localStorage.setItem('patient_monitor_name', name);
+  };
+
+  const handleUpdateAlarmTone = (tone: string) => {
+    setAlarmTone(tone);
+    localStorage.setItem('patient_monitor_alarm_tone', tone);
+  };
+
+  const handleClearAllData = async () => {
+    await clearAllDatabaseData();
+    setWaterList([]);
+    setUrineList([]);
+    setSugarList([]);
+    setSchedules([]);
+    setReminders([]);
+    setHistoricalSummaries([]);
+    setSummary({
+      summary_date: selectedDate,
+      total_intake_ml: 0,
+      total_output_ml: 0,
+      net_balance_ml: 0,
+      avg_blood_sugar_mgdl: null,
+      total_insulin_units: 0,
+      reading_count: 0
+    });
+  };
 
   // Intro animation states
   const [renderIntro, setRenderIntro] = useState<boolean>(true);
@@ -388,8 +431,8 @@ export default function Dashboard() {
       <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-5 space-y-4 pb-safe">
         {/* Desktop tab bar — hidden on mobile (we use bottom nav instead) */}
         <div className="hidden sm:flex items-center gap-1 bg-white border border-slate-200 p-1 rounded-2xl shadow-sm">
-          {(['dashboard', 'trends', 'schedules', 'export'] as const).map((tab, i) => {
-            const labels = ['📋 Track', '📈 Trends', '⏰ Alarms', '📥 Report'];
+          {(['dashboard', 'trends', 'schedules', 'export', 'settings'] as const).map((tab, i) => {
+            const labels = ['📋 Track', '📈 Trends', '⏰ Alarms', '📥 Report', '⚙️ Settings'];
             return (
               <button
                 key={tab}
@@ -419,7 +462,16 @@ export default function Dashboard() {
             <ScheduleTracker schedules={schedules} onAddSchedule={handleAddSchedule} onUpdateSchedule={handleUpdateSchedule} onDeleteSchedule={handleDeleteSchedule} />
           )}
           {activeTab === 'export' && (
-            <ExportReport patientName="Yousef" selectedDate={selectedDate} summary={summary} waterList={waterList} urineList={urineList} sugarList={sugarList} />
+            <ExportReport patientName={patientName} selectedDate={selectedDate} summary={summary} waterList={waterList} urineList={urineList} sugarList={sugarList} />
+          )}
+          {activeTab === 'settings' && (
+            <Settings
+              patientName={patientName}
+              onUpdatePatientName={handleUpdatePatientName}
+              alarmTone={alarmTone}
+              onUpdateAlarmTone={handleUpdateAlarmTone}
+              onClearAllData={handleClearAllData}
+            />
           )}
         </div>
       </main>
@@ -432,6 +484,7 @@ export default function Dashboard() {
             { tab: 'trends',    icon: TrendingUp,    label: 'Trends' },
             { tab: 'schedules', icon: Bell,          label: 'Alarms' },
             { tab: 'export',    icon: FileDown,      label: 'Report' },
+            { tab: 'settings',  icon: SettingsIcon,  label: 'Settings' }
           ] as const).map(({ tab, icon: Icon, label }) => {
             const isActive = activeTab === tab;
             return (
@@ -454,7 +507,7 @@ export default function Dashboard() {
         </div>
       </nav>
 
-      <AlarmModal pendingReminder={pendingAlarm} onMarkGiven={handleAlarmMarkGiven} onSnooze={handleAlarmSnooze} onMarkMissed={handleAlarmMarkMissed} />
+      <AlarmModal pendingReminder={pendingAlarm} alarmTone={alarmTone} onMarkGiven={handleAlarmMarkGiven} onSnooze={handleAlarmSnooze} onMarkMissed={handleAlarmMarkMissed} />
 
       {/* ── Premium Intro Screen (White Theme) ── */}
       {renderIntro && (

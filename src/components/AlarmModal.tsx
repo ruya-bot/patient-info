@@ -7,6 +7,7 @@ import { BellRing, CheckCircle, Clock, XCircle, Syringe } from 'lucide-react';
 
 interface AlarmModalProps {
   pendingReminder: MedicationReminderLog | null;
+  alarmTone?: string;
   onMarkGiven: (reminder: MedicationReminderLog) => void;
   onSnooze: (reminderId: string) => void;
   onMarkMissed: (reminderId: string) => void;
@@ -14,20 +15,21 @@ interface AlarmModalProps {
 
 export const AlarmModal: React.FC<AlarmModalProps> = ({
   pendingReminder,
+  alarmTone = 'chime',
   onMarkGiven,
   onSnooze,
   onMarkMissed
 }) => {
   useEffect(() => {
     if (pendingReminder) {
-      playAlarmSound();
+      playAlarmSound(alarmTone);
     } else {
       stopAlarmSound();
     }
     return () => {
       stopAlarmSound();
     };
-  }, [pendingReminder]);
+  }, [pendingReminder, alarmTone]);
 
   if (!pendingReminder) return null;
 

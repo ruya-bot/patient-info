@@ -275,3 +275,19 @@ export async function updateReminderStatus(
     .eq('id', id);
   if (error) throw new Error(`updateReminderStatus: ${error.message}`);
 }
+
+export async function clearAllDatabaseData(): Promise<void> {
+  const [w, u, s, m, r] = await Promise.all([
+    supabase.from('water_intake').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+    supabase.from('urine_output').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+    supabase.from('sugar_monitor').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+    supabase.from('medication_schedule').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+    supabase.from('medication_reminder_log').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+  ]);
+
+  if (w.error) throw new Error(`Clear Water Intake: ${w.error.message}`);
+  if (u.error) throw new Error(`Clear Urine Output: ${u.error.message}`);
+  if (s.error) throw new Error(`Clear Sugar Monitor: ${s.error.message}`);
+  if (m.error) throw new Error(`Clear Medication Schedule: ${m.error.message}`);
+  if (r.error) throw new Error(`Clear Reminder Log: ${r.error.message}`);
+}
