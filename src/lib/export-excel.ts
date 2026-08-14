@@ -150,6 +150,35 @@ export async function exportToExcel(
     });
   }
 
+  sheet.addRow([]);
+
+  // Section 5: Insulin Administration Log (Premium Purple Header)
+  const insulinStartRow = sheet.rowCount + 1;
+  sheet.mergeCells(`A${insulinStartRow}:F${insulinStartRow}`);
+  const insulinHeader = sheet.getCell(`A${insulinStartRow}`);
+  insulinHeader.value = '5. INSULIN ADMINISTRATION LOG';
+  insulinHeader.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: '581C87' } }; // Purple-900
+  insulinHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F3E8FF' } }; // Purple-100
+
+  sheet.addRow(['Time', 'Insulin Type', 'Dose (Units)', 'Blood Sugar', '', '']);
+  sheet.getRow(insulinStartRow + 1).font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: '581C87' } };
+
+  const dayInsulinOnly = safeSugar.filter(s => s.insulin_units && s.insulin_units > 0);
+  if (dayInsulinOnly.length === 0) {
+    sheet.addRow(['No insulin injections logged for this date', '', '', '', '', '']);
+  } else {
+    dayInsulinOnly.forEach(s => {
+      sheet.addRow([
+        formatTo12Hr(s.entry_time),
+        s.insulin_type || 'Insulin',
+        `${s.insulin_units} U`,
+        s.blood_sugar_mgdl ? `${s.blood_sugar_mgdl} mg/dL` : '-',
+        '',
+        ''
+      ]);
+    });
+  }
+
   // Adjust column widths
   sheet.columns = [
     { width: 18 },
@@ -306,8 +335,8 @@ export async function exportMultiDayExcel(
     { width: 18 }
   ];
 
-  // 4. Tab 4: Detailed Sugar & Insulin Log
-  const sugarSheet = workbook.addWorksheet('Glucose & Insulin Log');
+  // 4. Tab 4: Detailed Glucose Checks Log
+  const sugarSheet = workbook.addWorksheet('Glucose Log');
   sugarSheet.addRow(['Date', 'Time', 'Blood Sugar (mg/dL)', 'Status', 'Insulin Type', 'Units']);
   sugarSheet.getRow(1).font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFF' } };
   sugarSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1E293B' } };
@@ -333,8 +362,33 @@ export async function exportMultiDayExcel(
     { width: 15 }
   ];
 
+  // 5. Tab 5: Detailed Insulin Doses Log (Premium Purple Header)
+  const insulinSheet = workbook.addWorksheet('Insulin Doses Log');
+  insulinSheet.addRow(['Date', 'Time', 'Insulin Type', 'Dose (Units)', 'Blood Sugar']);
+  insulinSheet.getRow(1).font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFF' } };
+  insulinSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '581C87' } }; // Purple-900
+  insulinSheet.getRow(1).alignment = { horizontal: 'center' };
+
+  const rangeInsulinOnly = safeSugar.filter(s => s.insulin_units && s.insulin_units > 0);
+  rangeInsulinOnly.forEach(s => {
+    insulinSheet.addRow([
+      s.entry_date,
+      formatTo12Hr(s.entry_time),
+      s.insulin_type || 'Insulin',
+      s.insulin_units,
+      s.blood_sugar_mgdl ? `${s.blood_sugar_mgdl} mg/dL` : '-'
+    ]);
+  });
+  insulinSheet.columns = [
+    { width: 15 },
+    { width: 15 },
+    { width: 20 },
+    { width: 18 },
+    { width: 18 }
+  ];
+
   // Set grid lines visible for all sheets
-  [summarySheet, fluidsSheet, urineSheet, sugarSheet].forEach(sh => {
+  [summarySheet, fluidsSheet, urineSheet, sugarSheet, insulinSheet].forEach(sh => {
     sh.views = [{ showGridLines: true }];
   });
 
