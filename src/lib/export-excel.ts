@@ -152,27 +152,29 @@ export async function exportToExcel(
 
   sheet.addRow([]);
 
-  // Section 5: Insulin Administration Log (Premium Purple Header)
-  const insulinStartRow = sheet.rowCount + 1;
-  sheet.mergeCells(`A${insulinStartRow}:F${insulinStartRow}`);
-  const insulinHeader = sheet.getCell(`A${insulinStartRow}`);
-  insulinHeader.value = '5. INSULIN ADMINISTRATION LOG';
-  insulinHeader.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: '581C87' } }; // Purple-900
-  insulinHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F3E8FF' } }; // Purple-100
+  // Section 5: Blood Sugar & Insulin Log
+  const sugarLogStartRow = sheet.rowCount + 1;
+  sheet.mergeCells(`A${sugarLogStartRow}:F${sugarLogStartRow}`);
+  const sugarLogHeader = sheet.getCell(`A${sugarLogStartRow}`);
+  sugarLogHeader.value = '5. BLOOD SUGAR & INSULIN LOG';
+  sugarLogHeader.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: '0F172A' } }; // slate-900
+  sugarLogHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'E2E8F0' } }; // slate-200
 
-  sheet.addRow(['Time', 'Insulin Type', 'Dose (Units)', 'Blood Sugar', '', '']);
-  sheet.getRow(insulinStartRow + 1).font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: '581C87' } };
+  sheet.addRow(['Time', 'Blood Sugar', 'Status', 'Insulin Administered', '', '']);
+  sheet.getRow(sugarLogStartRow + 1).font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: '1E293B' } };
 
-  const dayInsulinOnly = safeSugar.filter(s => s.insulin_units && s.insulin_units > 0);
-  if (dayInsulinOnly.length === 0) {
-    sheet.addRow(['No insulin injections logged for this date', '', '', '', '', '']);
+  if (safeSugar.length === 0) {
+    sheet.addRow(['No blood sugar entries logged for this date', '', '', '', '', '']);
   } else {
-    dayInsulinOnly.forEach(s => {
+    safeSugar.forEach(s => {
+      const glucoseVal = s.blood_sugar_mgdl;
+      const status = glucoseVal >= 70 && glucoseVal <= 140 ? 'Normal' : (glucoseVal < 70 ? 'Low' : 'High');
+      const insulinText = s.insulin_units ? `${s.insulin_type || 'Insulin'}: ${s.insulin_units} U` : 'Check only';
       sheet.addRow([
         formatTo12Hr(s.entry_time),
-        s.insulin_type || 'Insulin',
-        `${s.insulin_units} U`,
-        s.blood_sugar_mgdl ? `${s.blood_sugar_mgdl} mg/dL` : '-',
+        `${glucoseVal} mg/dL`,
+        status,
+        insulinText,
         '',
         ''
       ]);
@@ -362,29 +364,31 @@ export async function exportMultiDayExcel(
     { width: 15 }
   ];
 
-  // 5. Tab 5: Detailed Insulin Doses Log (Premium Purple Header)
-  const insulinSheet = workbook.addWorksheet('Insulin Doses Log');
-  insulinSheet.addRow(['Date', 'Time', 'Insulin Type', 'Dose (Units)', 'Blood Sugar']);
+  // 5. Tab 5: Detailed Blood Sugar & Insulin Log
+  const insulinSheet = workbook.addWorksheet('Blood Sugar & Insulin Log');
+  insulinSheet.addRow(['Date', 'Time', 'Blood Sugar', 'Status', 'Insulin Administered']);
   insulinSheet.getRow(1).font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFF' } };
-  insulinSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '581C87' } }; // Purple-900
+  insulinSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1E293B' } }; // Slate-800
   insulinSheet.getRow(1).alignment = { horizontal: 'center' };
 
-  const rangeInsulinOnly = safeSugar.filter(s => s.insulin_units && s.insulin_units > 0);
-  rangeInsulinOnly.forEach(s => {
+  safeSugar.forEach(s => {
+    const glucoseVal = s.blood_sugar_mgdl;
+    const status = glucoseVal >= 70 && glucoseVal <= 140 ? 'Normal' : (glucoseVal < 70 ? 'Low' : 'High');
+    const insulinText = s.insulin_units ? `${s.insulin_type || 'Insulin'}: ${s.insulin_units} U` : 'Check only';
     insulinSheet.addRow([
       s.entry_date,
       formatTo12Hr(s.entry_time),
-      s.insulin_type || 'Insulin',
-      s.insulin_units,
-      s.blood_sugar_mgdl ? `${s.blood_sugar_mgdl} mg/dL` : '-'
+      `${glucoseVal} mg/dL`,
+      status,
+      insulinText
     ]);
   });
   insulinSheet.columns = [
     { width: 15 },
     { width: 15 },
-    { width: 20 },
     { width: 18 },
-    { width: 18 }
+    { width: 15 },
+    { width: 25 }
   ];
 
   // Set grid lines visible for all sheets

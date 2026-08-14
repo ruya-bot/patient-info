@@ -94,29 +94,36 @@ export function exportToPDF(
     }
   });
 
-  if (dayInsulinEntries.length > 0) {
+  if (safeSugar.length > 0) {
     currentY = (doc as any).lastAutoTable.finalY + 10;
     doc.setTextColor(15, 23, 42);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Insulin Administration Log', 14, currentY);
+    doc.text('Blood Sugar & Insulin Log', 14, currentY);
     currentY += 4;
 
-    const insulinRows = dayInsulinEntries.map(s => [
-      formatTo12Hr(s.entry_time),
-      s.insulin_type || 'Insulin',
-      `${s.insulin_units} U`,
-      s.blood_sugar_mgdl ? `${s.blood_sugar_mgdl} mg/dL` : '-'
-    ]);
+    const sugarSummaryRows = safeSugar.map(s => {
+      const glucoseVal = s.blood_sugar_mgdl;
+      const status = glucoseVal >= 70 && glucoseVal <= 140 ? 'Normal' : (glucoseVal < 70 ? 'Low' : 'High');
+      const insulinText = s.insulin_units
+        ? `${s.insulin_type || 'Insulin'}: ${s.insulin_units} U`
+        : 'Check only';
+      return [
+        formatTo12Hr(s.entry_time),
+        `${glucoseVal} mg/dL`,
+        status,
+        insulinText
+      ];
+    });
 
     autoTable(doc, {
       startY: currentY,
-      head: [['Time', 'Insulin Type', 'Dose', 'Blood Sugar']],
-      body: insulinRows,
+      head: [['Time', 'Glucose Level', 'Status', 'Insulin Type / Dose']],
+      body: sugarSummaryRows,
       theme: 'striped',
-      headStyles: { fillColor: [126, 34, 206], fontSize: 9 }, // purple-700
+      headStyles: { fillColor: [30, 41, 59], fontSize: 9 }, // Slate-800
       styles: { fontSize: 9, halign: 'center' },
-      alternateRowStyles: { fillColor: [250, 245, 255] } // light purple accent
+      alternateRowStyles: { fillColor: [248, 250, 252] }
     });
   }
 
@@ -160,39 +167,6 @@ export function exportToPDF(
     startY: currentY,
     head: [['Time', 'Volume']],
     body: urineRows,
-    theme: 'striped',
-    headStyles: { fillColor: [30, 41, 59], fontSize: 9 },
-    styles: { fontSize: 9 },
-    alternateRowStyles: { fillColor: [248, 250, 252] }
-  });
-
-  currentY = (doc as any).lastAutoTable.finalY + 12;
-
-  // 5. Blood Sugar & Insulin Section (Clean columns, no notes)
-  doc.setTextColor(15, 23, 42);
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Blood Sugar & Insulin Monitor', 14, currentY);
-  currentY += 4;
-
-  const sugarRows = safeSugar.length > 0
-    ? safeSugar.map(s => {
-        const glucoseVal = s.blood_sugar_mgdl;
-        const status = glucoseVal >= 70 && glucoseVal <= 140 ? 'Normal' : (glucoseVal < 70 ? 'Low' : 'High');
-        return [
-          formatTo12Hr(s.entry_time),
-          `${glucoseVal} mg/dL`,
-          status,
-          s.insulin_type || '-',
-          s.insulin_units ? `${s.insulin_units} U` : '-'
-        ];
-      })
-    : [['-', 'No blood sugar logs for this date', '-', '-', '-']];
-
-  autoTable(doc, {
-    startY: currentY,
-    head: [['Time', 'Glucose Level', 'Status', 'Insulin Type', 'Units']],
-    body: sugarRows,
     theme: 'striped',
     headStyles: { fillColor: [30, 41, 59], fontSize: 9 },
     styles: { fontSize: 9 },
@@ -366,33 +340,38 @@ export function exportMultiDayPDF(
     }
   });
 
-  // Find all insulin doses for range report
-  const rangeInsulinEntries = safeSugar.filter(s => s.insulin_units && s.insulin_units > 0);
-
-  if (rangeInsulinEntries.length > 0) {
+  // Find all sugar entries for range report
+  if (safeSugar.length > 0) {
     currentY = (doc as any).lastAutoTable.finalY + 10;
     doc.setTextColor(15, 23, 42);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Insulin Administration Log', 14, currentY);
+    doc.text('Blood Sugar & Insulin Log', 14, currentY);
     currentY += 4;
 
-    const insulinRows = rangeInsulinEntries.map(s => [
-      s.entry_date,
-      formatTo12Hr(s.entry_time),
-      s.insulin_type || 'Insulin',
-      `${s.insulin_units} U`,
-      s.blood_sugar_mgdl ? `${s.blood_sugar_mgdl} mg/dL` : '-'
-    ]);
+    const sugarSummaryRows = safeSugar.map(s => {
+      const glucoseVal = s.blood_sugar_mgdl;
+      const status = glucoseVal >= 70 && glucoseVal <= 140 ? 'Normal' : (glucoseVal < 70 ? 'Low' : 'High');
+      const insulinText = s.insulin_units
+        ? `${s.insulin_type || 'Insulin'}: ${s.insulin_units} U`
+        : 'Check only';
+      return [
+        s.entry_date,
+        formatTo12Hr(s.entry_time),
+        `${glucoseVal} mg/dL`,
+        status,
+        insulinText
+      ];
+    });
 
     autoTable(doc, {
       startY: currentY,
-      head: [['Date', 'Time', 'Insulin Type', 'Dose', 'Blood Sugar']],
-      body: insulinRows,
+      head: [['Date', 'Time', 'Glucose Level', 'Status', 'Insulin Type / Dose']],
+      body: sugarSummaryRows,
       theme: 'striped',
-      headStyles: { fillColor: [126, 34, 206], fontSize: 9 }, // purple-700
+      headStyles: { fillColor: [30, 41, 59], fontSize: 9 }, // Slate-800
       styles: { fontSize: 9, halign: 'center' },
-      alternateRowStyles: { fillColor: [250, 245, 255] } // light purple accent
+      alternateRowStyles: { fillColor: [248, 250, 252] }
     });
   }
 
