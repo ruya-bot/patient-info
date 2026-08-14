@@ -1,0 +1,21 @@
+{
+  "name": "Patient Monitor (Yousef)",
+  "short_name": "Patient Monitor",
+  "description": "Personal health tracker for water intake, urine output, blood sugar & medication alarms.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1F3864",
+  "theme_color": "#1F3864",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

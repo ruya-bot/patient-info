@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Google Font ─── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    @apply bg-[#f0f4f8] text-slate-900 min-h-screen antialiased;
+    overscroll-behavior: none;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    opacity: 0.5;
+    cursor: pointer;
+  }
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+
+/* ─── Glass ─── */
+.glass {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* ─── Card ─── */
+.card {
+  @apply bg-white rounded-3xl border border-slate-200/70 shadow-sm;
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
+}
+.card:hover {
+  @apply shadow-md;
+}
+
+/* ─── Premium button base ─── */
+.btn {
+  @apply inline-flex items-center justify-center gap-1.5 font-bold rounded-2xl transition-all duration-200 select-none;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active { transform: scale(0.95); }
+
+/* ─── Animations ─── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInBottom {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.4); }
+}
+
+.anim-fade-up      { animation: fadeSlideUp 0.3s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-fade-in      { animation: fadeIn 0.25s ease both; }
+.anim-scale-in     { animation: scaleIn 0.25s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-slide-down   { animation: slideDown 0.25s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-slide-bottom { animation: slideInBottom 0.35s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* Stagger children */
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 60ms; }
+.stagger > *:nth-child(3) { animation-delay: 120ms; }
+.stagger > *:nth-child(4) { animation-delay: 180ms; }
+
+/* ─── Tab underline indicator ─── */
+.tab-active {
+  @apply text-slate-900 font-extrabold;
+}
+.tab-active::after {
+  content: '';
+  @apply block h-0.5 bg-slate-900 rounded-full mt-0.5;
+}
+
+/* ─── Input focus ring ─── */
+.input-field {
+  @apply w-full text-sm font-semibold px-3.5 py-3 rounded-2xl bg-slate-50 border border-slate-200
+    text-slate-900 placeholder:text-slate-400
+    focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+    transition-all duration-200;
+  -webkit-appearance: none;
+}
+
+/* ─── Quick-log pill button ─── */
+.pill-btn {
+  @apply text-xs font-bold px-4 py-2.5 rounded-2xl border transition-all duration-150 select-none;
+  -webkit-tap-highlight-color: transparent;
+}
+.pill-btn:active { transform: scale(0.93); }
+
+/* ─── Bottom nav (mobile) ─── */
+.bottom-nav {
+  @apply fixed bottom-0 left-0 right-0 z-50 glass border-t border-slate-200/80;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ─── Safe-area padding ─── */
+.pb-safe {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* ─── Row hover ─── */
+.log-row {
+  @apply transition-colors duration-150;
+}
+.log-row:active {
+  @apply bg-slate-100;
+}
