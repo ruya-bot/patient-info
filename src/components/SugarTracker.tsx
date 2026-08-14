@@ -266,7 +266,16 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
 
       {/* Entries List */}
       {entries.length > 0 && (
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 mt-4">Logged Entries</p>
+        <div className="hidden sm:flex items-center justify-between px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 mb-1 mt-4">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <span className="w-24 shrink-0">Time</span>
+            <span className="w-24 shrink-0">Blood Sugar</span>
+            <span className="w-24 shrink-0 text-center">Status</span>
+            <span className="w-36 shrink-0">Insulin Type / Dose</span>
+            <span>Notes</span>
+          </div>
+          <span className="w-8 text-right">Delete</span>
+        </div>
       )}
       {entries.length === 0 ? (
         <div className="text-center py-6 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
@@ -279,46 +288,54 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
             return (
               <div
                 key={item.id}
-                className="log-row flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-2xl border border-slate-100 bg-slate-50/50 sm:bg-transparent sm:border-0 hover:bg-slate-50 transition-colors duration-150"
+                className="log-row flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:px-3 sm:py-2.5 rounded-2xl border border-slate-100 bg-slate-50/50 sm:bg-transparent sm:border-0 hover:bg-slate-50 transition-colors duration-150"
                 style={{ animationDelay: `${i * 40}ms` }}
               >
                 {/* Left side: Time, Value, Status & Insulin */}
-                <div className="flex flex-wrap items-center gap-2.5 min-w-0">
-                  <div className="flex items-center gap-1.5 text-slate-400 text-xs shrink-0 font-bold">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 flex-1 min-w-0">
+                  <div className="w-24 flex items-center gap-1.5 text-slate-400 text-xs shrink-0 font-bold">
                     <Clock className="w-3.5 h-3.5" />
                     <span className="tabular-nums">{formatTo12Hr(item.entry_time)}</span>
                   </div>
                   
-                  <div className="text-sm font-black text-slate-900 shrink-0">
+                  <div className="w-24 text-sm font-black text-slate-900 shrink-0">
                     {item.blood_sugar_mgdl} <span className="text-[10px] text-slate-400 font-semibold">mg/dL</span>
                   </div>
 
-                  <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${statusColorMap[status.status]}`}>
+                  <span className={`w-24 text-[10px] font-black px-2.5 py-0.5 rounded-full border text-center shrink-0 ${statusColorMap[status.status]}`}>
                     {statusBadgeMap[status.status]}
                   </span>
 
-                  {item.insulin_units ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] text-purple-700 font-extrabold bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-lg shrink-0">
-                      <Syringe className="w-3 h-3" />
-                      {item.insulin_type || 'Insulin'}: {item.insulin_units} U
-                    </span>
-                  ) : (
-                    <span className="text-slate-400 text-[10px] bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200 shrink-0">Check only</span>
-                  )}
-                </div>
+                  <div className="w-36 shrink-0">
+                    {item.insulin_units ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] text-purple-700 font-extrabold bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-lg">
+                        <Syringe className="w-3 h-3" />
+                        {item.insulin_type || 'Insulin'}: {item.insulin_units} U
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 text-[10px] bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">Check only</span>
+                    )}
+                  </div>
 
-                {/* Right side: Notes & Delete Action */}
-                <div className="flex items-center justify-between sm:justify-end gap-3 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t border-dashed border-slate-200 sm:border-t-0 min-w-0">
                   {item.notes ? (
-                    <span className="text-xs text-slate-500 font-medium italic truncate max-w-[200px]">
+                    <span className="hidden sm:inline-block text-xs text-slate-500 font-medium italic truncate flex-1 min-w-0">
                       {item.notes}
                     </span>
                   ) : (
-                    <span className="hidden sm:inline-block text-xs text-slate-300 font-medium italic">-</span>
+                    <span className="hidden sm:inline-block text-xs text-slate-300 font-medium italic flex-1 min-w-0">-</span>
+                  )}
+                </div>
+
+                {/* Right side: Notes (Mobile only) & Delete Action */}
+                <div className="flex items-center justify-between sm:justify-end gap-3 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t border-dashed border-slate-200 sm:border-t-0 min-w-0 shrink-0 w-full sm:w-8">
+                  {item.notes && (
+                    <span className="sm:hidden text-xs text-slate-500 font-medium italic truncate max-w-[200px]">
+                      {item.notes}
+                    </span>
                   )}
                   <button
                     onClick={() => onDeleteEntry(item.id)}
-                    className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-150 active:scale-90 shrink-0 ml-auto"
+                    className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-150 active:scale-90 shrink-0 ml-auto w-8 flex justify-end"
                     title="Delete"
                   >
                     <Trash2 className="w-4 h-4" />

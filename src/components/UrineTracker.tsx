@@ -123,7 +123,14 @@ export const UrineTracker: React.FC<UrineTrackerProps> = ({
 
       {/* Log list */}
       {entries.length > 0 && (
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 mt-4">Logged Entries</p>
+        <div className="flex items-center justify-between px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 mb-1 mt-4">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <span className="w-24 shrink-0">Time</span>
+            <span className="w-20 shrink-0">Volume</span>
+            <span>Notes</span>
+          </div>
+          <span className="w-8 text-right">Delete</span>
+        </div>
       )}
       {entries.length === 0 ? (
         <div className="text-center py-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
@@ -136,16 +143,22 @@ export const UrineTracker: React.FC<UrineTrackerProps> = ({
             <div key={e.id}
               className="log-row flex items-center justify-between px-3 py-2.5 rounded-2xl hover:bg-slate-50"
               style={{ animationDelay: `${i * 40}ms` }}>
-              <div className="flex items-center gap-2.5">
-                <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span className="text-xs font-bold text-slate-700 tabular-nums">{formatTo12Hr(e.entry_time)}</span>
-                <span className="text-sm font-black text-slate-900 tabular-nums">{e.volume_ml} <span className="text-[11px] text-slate-400 font-semibold">ml</span></span>
-                {e.notes && e.notes !== 'Quick log' && (
-                  <span className="text-[11px] text-slate-400 italic truncate max-w-[100px]">{e.notes}</span>
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <span className="w-24 text-xs font-bold text-slate-700 tabular-nums shrink-0 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  {formatTo12Hr(e.entry_time)}
+                </span>
+                <span className="w-20 text-sm font-black text-slate-900 tabular-nums shrink-0">
+                  {e.volume_ml} <span className="text-[11px] text-slate-400 font-semibold">ml</span>
+                </span>
+                {e.notes && e.notes !== 'Quick log' ? (
+                  <span className="text-[11px] text-slate-400 italic truncate">{e.notes}</span>
+                ) : (
+                  <span className="hidden sm:inline-block text-[11px] text-slate-300 font-semibold italic">-</span>
                 )}
               </div>
               <button onClick={() => onDeleteEntry(e.id)}
-                className="p-1.5 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all duration-150 active:scale-90 ml-2">
+                className="p-1.5 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all duration-150 active:scale-90 shrink-0 w-8 flex justify-end">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
