@@ -56,6 +56,12 @@ export function exportToPDF(
   doc.text('Daily Summary Overview', 14, currentY);
   currentY += 4;
 
+  // Find all insulin doses for single day report
+  const dayInsulinEntries = safeSugar.filter(s => s.insulin_units && s.insulin_units > 0);
+  const singleDayInsulinDetails = dayInsulinEntries.length > 0
+    ? dayInsulinEntries.map(s => `${s.insulin_type || 'Insulin'}: ${s.insulin_units} U`).join(', ')
+    : '0 U';
+
   // Summary Table (Styled like a clean dashboard card)
   autoTable(doc, {
     startY: currentY,
@@ -65,12 +71,12 @@ export function exportToPDF(
       `${totalOutput} ml`,
       `${netBalance} ml`,
       summary?.avg_blood_sugar_mgdl ? `${summary.avg_blood_sugar_mgdl} mg/dL` : 'N/A',
-      `${summary?.total_insulin_units ?? 0} U`,
+      singleDayInsulinDetails,
       `${safeSugar.length} readings`
     ]],
     theme: 'grid',
     headStyles: { 
-      fillColor: [59, 130, 246], 
+      fillColor: [15, 23, 42], // slate-900
       textColor: [255, 255, 255], 
       fontStyle: 'bold', 
       fontSize: 9,
@@ -78,7 +84,8 @@ export function exportToPDF(
     },
     styles: { 
       halign: 'center', 
-      fontSize: 10, 
+      valign: 'middle',
+      fontSize: 9.5, 
       fontStyle: 'bold', 
       textColor: [15, 23, 42] 
     },
@@ -260,11 +267,13 @@ export function exportMultiDayPDF(
       ? Math.round(glucoseValues.reduce((a, b) => a + b, 0) / glucoseValues.length)
       : 0;
 
-    const dayInsulin = daySugar.reduce((acc, c) => acc + Number(c.insulin_units || 0), 0);
+    const dayInsulinEntries = daySugar.filter(s => s.insulin_units && s.insulin_units > 0);
+    const insulinDetails = dayInsulinEntries.length > 0
+      ? dayInsulinEntries.map(s => `${s.insulin_type || 'Insulin'}: ${s.insulin_units} U`).join(', ')
+      : '0 U';
 
     totalIntakeAll += dayIntake;
     totalOutputAll += dayOutput;
-    totalInsulinAll += dayInsulin;
 
     summaryRows.push([
       dateStr,
@@ -272,7 +281,7 @@ export function exportMultiDayPDF(
       `${dayOutput} ml`,
       `${dayBalance} ml`,
       avgGlucose > 0 ? `${avgGlucose} mg/dL` : 'N/A',
-      `${dayInsulin} U`,
+      insulinDetails,
       `${daySugar.length} rdgs`
     ]);
   });
@@ -310,16 +319,24 @@ export function exportMultiDayPDF(
     body: summaryRows,
     theme: 'grid',
     headStyles: { 
-      fillColor: [59, 130, 246], 
+      fillColor: [15, 23, 42], // slate-900
       textColor: [255, 255, 255], 
       fontStyle: 'bold', 
-      fontSize: 9,
-      halign: 'center'
+      fontSize: 8.5,
+      halign: 'center',
+      cellPadding: 4
     },
     styles: { 
       halign: 'center', 
-      fontSize: 9, 
-      textColor: [15, 23, 42] 
+      valign: 'middle',
+      fontSize: 8.5, 
+      textColor: [15, 23, 42],
+      cellPadding: 3,
+      lineColor: [226, 232, 240], // slate-200
+      lineWidth: 0.1
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252] // slate-50
     }
   });
 

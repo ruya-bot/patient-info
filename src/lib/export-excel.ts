@@ -53,13 +53,18 @@ export async function exportToExcel(
   summaryHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F3E8FF' } }; // purple-100
   sheet.getRow(4).height = 24;
 
+  const dayInsulinEntries = safeSugar.filter(s => s.insulin_units && s.insulin_units > 0);
+  const singleDayInsulinDetails = dayInsulinEntries.length > 0
+    ? dayInsulinEntries.map(s => `${s.insulin_type || 'Insulin'}: ${s.insulin_units} U`).join(', ')
+    : '0 U';
+
   const summaryRowHeaders = ['Total Water Intake', 'Total Urine Output', 'Net Fluid Balance', 'Avg Blood Sugar', 'Total Insulin Given', 'Readings Count'];
   const summaryValues = [
     `${totalIntake} ml`,
     `${totalOutput} ml`,
     `${netBalance} ml`,
     summary?.avg_blood_sugar_mgdl ? `${summary.avg_blood_sugar_mgdl} mg/dL` : 'N/A',
-    `${summary?.total_insulin_units ?? 0} U`,
+    singleDayInsulinDetails,
     `${safeSugar.length} entries`
   ];
 
@@ -235,7 +240,10 @@ export async function exportMultiDayExcel(
       ? Math.round(glucoseValues.reduce((a, b) => a + b, 0) / glucoseValues.length)
       : 0;
 
-    const dayInsulin = daySugar.reduce((acc, c) => acc + Number(c.insulin_units || 0), 0);
+    const dayInsulinEntries = daySugar.filter(s => s.insulin_units && s.insulin_units > 0);
+    const insulinDetails = dayInsulinEntries.length > 0
+      ? dayInsulinEntries.map(s => `${s.insulin_type || 'Insulin'}: ${s.insulin_units} U`).join(', ')
+      : '0 U';
 
     summarySheet.addRow([
       dateStr,
@@ -243,7 +251,7 @@ export async function exportMultiDayExcel(
       dayOutput,
       dayBalance,
       avgGlucose > 0 ? avgGlucose : 'N/A',
-      dayInsulin,
+      insulinDetails,
       daySugar.length
     ]);
   });
