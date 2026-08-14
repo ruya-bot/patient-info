@@ -44,7 +44,6 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
   const [bloodSugar, setBloodSugar] = useState<number | ''>(110);
   const [insulinType, setInsulinType] = useState('Lantus');
   const [insulinUnits, setInsulinUnits] = useState<number | ''>('');
-  const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [mode, setMode] = useState<'check' | 'insulin'>('check');
@@ -96,9 +95,8 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
         blood_sugar_mgdl: Number(bloodSugar),
         insulin_type: mode === 'insulin' ? (insulinType || null) : null,
         insulin_units: mode === 'insulin' && insulinUnits ? Number(insulinUnits) : null,
-        notes: notes.trim() || null
+        notes: mode === 'insulin' ? 'Insulin log' : 'Manual sugar log'
       });
-      setNotes('');
       setInsulinUnits('');
       setShowCustomForm(false);
       if (onClearPrefilled) onClearPrefilled();
@@ -248,13 +246,6 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
             )}
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1">Notes</label>
-            <input type="text" value={notes} onChange={e => setNotes(e.target.value)}
-              className="w-full text-xs font-bold p-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
-              placeholder="Fasting check, after breakfast..." />
-          </div>
-
           <div className="flex justify-end pt-1">
             <button type="submit" disabled={isSubmitting}
               className="text-xs font-extrabold px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white transition active:scale-95 shadow-sm disabled:opacity-50">
@@ -272,7 +263,6 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
             <span className="w-24 shrink-0">Blood Sugar</span>
             <span className="w-24 shrink-0 text-center">Status</span>
             <span className="w-36 shrink-0">Insulin Type / Dose</span>
-            <span>Notes</span>
           </div>
           <span className="w-8 text-right"></span>
         </div>
@@ -316,26 +306,13 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
                       <span className="text-slate-400 text-[10px] bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">Check only</span>
                     )}
                   </div>
-
-                  {item.notes ? (
-                    <span className="hidden sm:inline-block text-xs text-slate-500 font-medium italic truncate flex-1 min-w-0">
-                      {item.notes}
-                    </span>
-                  ) : (
-                    <span className="hidden sm:inline-block text-xs text-slate-300 font-medium italic flex-1 min-w-0">-</span>
-                  )}
                 </div>
 
-                {/* Right side: Notes (Mobile only) & Delete Action */}
-                <div className="flex items-center justify-between sm:justify-end gap-3 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t border-dashed border-slate-200 sm:border-t-0 min-w-0 shrink-0 w-full sm:w-8">
-                  {item.notes && (
-                    <span className="sm:hidden text-xs text-slate-500 font-medium italic truncate max-w-[200px]">
-                      {item.notes}
-                    </span>
-                  )}
+                {/* Right side: Delete Action */}
+                <div className="flex items-center justify-end shrink-0 w-8">
                   <button
                     onClick={() => onDeleteEntry(item.id)}
-                    className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-150 active:scale-90 shrink-0 ml-auto w-8 flex justify-end"
+                    className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-150 active:scale-90 w-8 flex justify-end"
                     title="Delete"
                   >
                     <Trash2 className="w-4 h-4" />
