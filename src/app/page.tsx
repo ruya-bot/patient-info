@@ -39,7 +39,7 @@ import { ScheduleTracker } from '@/components/ScheduleTracker';
 import { AlarmModal } from '@/components/AlarmModal';
 import { TrendsChart } from '@/components/TrendsChart';
 import { ExportReport } from '@/components/ExportReport';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, HeartPulse } from 'lucide-react';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
 export default function Dashboard() {
@@ -64,6 +64,33 @@ export default function Dashboard() {
   const [pendingAlarm, setPendingAlarm] = useState<MedicationReminderLog | null>(null);
   const [prefilledInsulin, setPrefilledInsulin] = useState<{ type: string; units: number } | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'trends' | 'schedules' | 'export'>('dashboard');
+
+  // Intro animation states
+  const [renderIntro, setRenderIntro] = useState<boolean>(true);
+  const [introFadeOut, setIntroFadeOut] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hasShown = sessionStorage.getItem('patient_monitor_intro_shown');
+      if (hasShown) {
+        setRenderIntro(false);
+        return;
+      }
+    }
+    const fadeTimer = setTimeout(() => {
+      setIntroFadeOut(true);
+    }, 2000);
+    const removeTimer = setTimeout(() => {
+      setRenderIntro(false);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('patient_monitor_intro_shown', 'true');
+      }
+    }, 2500);
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(removeTimer);
+    };
+  }, []);
 
   // Error toast state
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -422,6 +449,35 @@ export default function Dashboard() {
       </nav>
 
       <AlarmModal pendingReminder={pendingAlarm} onMarkGiven={handleAlarmMarkGiven} onSnooze={handleAlarmSnooze} onMarkMissed={handleAlarmMarkMissed} />
+
+      {/* ── Premium Intro Screen ── */}
+      {renderIntro && (
+        <div className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 text-white transition-opacity duration-500 ease-out ${
+          introFadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}>
+          <div className="flex flex-col items-center max-w-xs text-center space-y-6">
+            {/* Heart logo */}
+            <div className="intro-glow w-20 h-20 rounded-[28px] bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-500/30">
+              <HeartPulse className="w-10 h-10 text-white" />
+            </div>
+            
+            {/* Text details */}
+            <div className="space-y-1">
+              <h2 className="intro-title text-2xl font-black tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
+                Patient Monitor
+              </h2>
+              <p className="intro-subtitle text-xs text-slate-400 font-bold uppercase tracking-wider">
+                Yousef Care Dashboard
+              </p>
+            </div>
+
+            {/* Premium Loader Bar */}
+            <div className="w-36 h-1 bg-slate-800 rounded-full overflow-hidden">
+              <div className="intro-progress h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
