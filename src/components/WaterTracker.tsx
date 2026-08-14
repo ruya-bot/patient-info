@@ -130,7 +130,7 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
                       key={t.value}
                       type="button"
                       onClick={() => setLiquidType(t.value)}
-                      className={`flex items-center gap-1.5 px-4.5 py-3 rounded-2xl text-sm font-bold border transition-all duration-150 shrink-0 select-none active:scale-95
+                      className={`flex items-center gap-1.5 px-5 py-3 rounded-2xl text-sm font-bold border transition-all duration-150 shrink-0 select-none active:scale-95
                         ${isSelected 
                           ? 'bg-blue-600 border-blue-600 text-white shadow-sm' 
                           : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'

@@ -195,7 +195,7 @@ export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
                       key={c.value}
                       type="button"
                       onClick={() => setCategory(c.value)}
-                      className={`flex items-center justify-center px-4.5 py-3 rounded-2xl text-sm font-bold border transition-all duration-150 shrink-0 select-none active:scale-95
+                      className={`flex items-center justify-center px-5 py-3 rounded-2xl text-sm font-bold border transition-all duration-150 shrink-0 select-none active:scale-95
                         ${isSelected 
                           ? 'bg-purple-600 border-purple-600 text-white shadow-sm' 
                           : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -218,7 +218,7 @@ export const ScheduleTracker: React.FC<ScheduleTrackerProps> = ({
                       key={r.value}
                       type="button"
                       onClick={() => setRecurrence(r.value)}
-                      className={`flex items-center justify-center px-4.5 py-3 rounded-2xl text-sm font-bold border transition-all duration-150 shrink-0 select-none active:scale-95
+                      className={`flex items-center justify-center px-5 py-3 rounded-2xl text-sm font-bold border transition-all duration-150 shrink-0 select-none active:scale-95
                         ${isSelected 
                           ? 'bg-purple-600 border-purple-600 text-white shadow-sm' 
                           : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
