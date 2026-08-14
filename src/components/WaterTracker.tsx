@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { WaterIntakeEntry } from '@/types';
 import { Plus, Trash2, Clock, GlassWater, X } from 'lucide-react';
+import { formatTo12Hr } from '@/lib/storage';
 
 interface WaterTrackerProps {
   selectedDate: string;
@@ -129,13 +130,13 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
                       key={t.value}
                       type="button"
                       onClick={() => setLiquidType(t.value)}
-                      className={`flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all duration-150 shrink-0 select-none active:scale-95
+                      className={`flex items-center gap-1.5 px-4.5 py-3 rounded-2xl text-sm font-bold border transition-all duration-150 shrink-0 select-none active:scale-95
                         ${isSelected 
                           ? 'bg-blue-600 border-blue-600 text-white shadow-sm' 
                           : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                         }`}
                     >
-                      <span className="text-sm">{t.emoji}</span>
+                      <span className="text-base">{t.emoji}</span>
                       <span>{t.value}</span>
                     </button>
                   );
@@ -155,6 +156,9 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
       )}
 
       {/* Log list */}
+      {entries.length > 0 && (
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 mt-4">Logged Entries</p>
+      )}
       {entries.length === 0 ? (
         <div className="text-center py-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
           <GlassWater className="w-8 h-8 text-slate-300 mx-auto mb-2" />
@@ -168,7 +172,7 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
               style={{ animationDelay: `${i * 40}ms` }}>
               <div className="flex items-center gap-2.5 min-w-0">
                 <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span className="text-xs font-bold text-slate-700 tabular-nums shrink-0">{e.entry_time.slice(0,5)}</span>
+                <span className="text-xs font-bold text-slate-700 tabular-nums shrink-0">{formatTo12Hr(e.entry_time)}</span>
                 <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100 shrink-0">{e.liquid_type}</span>
                 <span className="text-sm font-black text-slate-900 tabular-nums">{e.amount_ml} <span className="text-[11px] text-slate-400 font-semibold">ml</span></span>
               </div>

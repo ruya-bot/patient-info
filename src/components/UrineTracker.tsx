@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { UrineOutputEntry } from '@/types';
 import { Droplet, Plus, Trash2, Clock, X } from 'lucide-react';
+import { formatTo12Hr } from '@/lib/storage';
 
 interface UrineTrackerProps {
   selectedDate: string;
@@ -121,6 +122,9 @@ export const UrineTracker: React.FC<UrineTrackerProps> = ({
       )}
 
       {/* Log list */}
+      {entries.length > 0 && (
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 mt-4">Logged Entries</p>
+      )}
       {entries.length === 0 ? (
         <div className="text-center py-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
           <Droplet className="w-8 h-8 text-slate-300 mx-auto mb-2" />
@@ -134,7 +138,7 @@ export const UrineTracker: React.FC<UrineTrackerProps> = ({
               style={{ animationDelay: `${i * 40}ms` }}>
               <div className="flex items-center gap-2.5">
                 <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span className="text-xs font-bold text-slate-700 tabular-nums">{e.entry_time.slice(0,5)}</span>
+                <span className="text-xs font-bold text-slate-700 tabular-nums">{formatTo12Hr(e.entry_time)}</span>
                 <span className="text-sm font-black text-slate-900 tabular-nums">{e.volume_ml} <span className="text-[11px] text-slate-400 font-semibold">ml</span></span>
                 {e.notes && e.notes !== 'Quick log' && (
                   <span className="text-[11px] text-slate-400 italic truncate max-w-[100px]">{e.notes}</span>

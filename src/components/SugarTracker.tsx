@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { SugarMonitorEntry, getGlucoseStatus } from '@/types';
 import { Activity, Plus, Trash2, Clock, Syringe, Droplets } from 'lucide-react';
+import { formatTo12Hr } from '@/lib/storage';
 
 interface SugarTrackerProps {
   selectedDate: string;
@@ -223,7 +224,7 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
                           key={t.value}
                           type="button"
                           onClick={() => setInsulinType(t.value)}
-                          className={`flex items-center justify-center px-4 py-2.5 rounded-2xl text-xs font-bold border transition-all duration-150 shrink-0 select-none active:scale-95
+                          className={`flex items-center justify-center px-4.5 py-3 rounded-2xl text-sm font-bold border transition-all duration-150 shrink-0 select-none active:scale-95
                             ${isSelected 
                               ? 'bg-purple-600 border-purple-600 text-white shadow-sm' 
                               : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -264,6 +265,9 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
       )}
 
       {/* Entries List */}
+      {entries.length > 0 && (
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 mt-4">Logged Entries</p>
+      )}
       {entries.length === 0 ? (
         <div className="text-center py-6 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
           <p className="text-xs font-semibold text-slate-500">No blood sugar logged yet for this date.</p>
@@ -282,7 +286,7 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
                 <div className="flex flex-wrap items-center gap-2.5 min-w-0">
                   <div className="flex items-center gap-1.5 text-slate-400 text-xs shrink-0 font-bold">
                     <Clock className="w-3.5 h-3.5" />
-                    <span className="tabular-nums">{item.entry_time.slice(0, 5)}</span>
+                    <span className="tabular-nums">{formatTo12Hr(item.entry_time)}</span>
                   </div>
                   
                   <div className="text-sm font-black text-slate-900 shrink-0">

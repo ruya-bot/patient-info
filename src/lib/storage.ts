@@ -29,6 +29,18 @@ export function shiftDateString(dateStr: string, deltaDays: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+export function formatTo12Hr(timeStr: string): string {
+  if (!timeStr) return '';
+  const parts = timeStr.split(':');
+  if (parts.length < 2) return timeStr;
+  let hour = parseInt(parts[0], 10);
+  const minute = parts[1];
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12;
+  hour = hour ? hour : 12;
+  return `${hour}:${minute} ${ampm}`;
+}
+
 // Helper that throws a user-visible error on Supabase failure
 function assertNoError<T>(data: T | null, error: { message: string } | null, context: string): T {
   if (error) {
