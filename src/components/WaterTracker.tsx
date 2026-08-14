@@ -164,7 +164,7 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
             <span className="w-20 shrink-0 text-center">Type</span>
             <span>Amount</span>
           </div>
-          <span className="w-8 text-right">Delete</span>
+          <span className="w-8 text-right"></span>
         </div>
       )}
       {entries.length === 0 ? (

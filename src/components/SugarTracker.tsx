@@ -274,7 +274,7 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
             <span className="w-36 shrink-0">Insulin Type / Dose</span>
             <span>Notes</span>
           </div>
-          <span className="w-8 text-right">Delete</span>
+          <span className="w-8 text-right"></span>
         </div>
       )}
       {entries.length === 0 ? (

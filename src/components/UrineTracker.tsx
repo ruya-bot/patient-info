@@ -26,7 +26,6 @@ export const UrineTracker: React.FC<UrineTrackerProps> = ({
   const now = () => new Date().toTimeString().slice(0, 5);
   const [time, setTime] = useState(now());
   const [volumeMl, setVolumeMl] = useState<number | ''>(100);
-  const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [quickSaving, setQuickSaving] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -45,8 +44,8 @@ export const UrineTracker: React.FC<UrineTrackerProps> = ({
     if (!volumeMl || Number(volumeMl) <= 0) return;
     setSaving(true);
     try {
-      await onAddEntry({ entry_date: selectedDate, entry_time: time || now(), volume_ml: Number(volumeMl), notes: notes.trim() || null });
-      setNotes(''); setVolumeMl(100); setShowForm(false);
+      await onAddEntry({ entry_date: selectedDate, entry_time: time || now(), volume_ml: Number(volumeMl), notes: null });
+      setVolumeMl(100); setShowForm(false);
     } finally { setSaving(false); }
   };
 
@@ -97,7 +96,7 @@ export const UrineTracker: React.FC<UrineTrackerProps> = ({
 
       {/* Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="mb-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 anim-slide-down">
+        <form onSubmit={handleSubmit} className="mb-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-4 anim-slide-down">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Time</label>
@@ -107,11 +106,7 @@ export const UrineTracker: React.FC<UrineTrackerProps> = ({
               <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Volume (ml)</label>
               <input type="number" min="0" step="10" value={volumeMl}
                 onChange={e => setVolumeMl(e.target.value === '' ? '' : Number(e.target.value))}
-                className="input-field" placeholder="250" required />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-[11px] font-bold text-slate-500 mb-1.5">Notes</label>
-              <input type="text" value={notes} onChange={e => setNotes(e.target.value)} className="input-field" placeholder="Clear, pale yellow..." />
+                className="input-field" placeholder="100" required />
             </div>
           </div>
           <button type="submit" disabled={saving}
@@ -127,9 +122,8 @@ export const UrineTracker: React.FC<UrineTrackerProps> = ({
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <span className="w-24 shrink-0">Time</span>
             <span className="w-20 shrink-0">Volume</span>
-            <span>Notes</span>
           </div>
-          <span className="w-8 text-right">Delete</span>
+          <span className="w-8 text-right"></span>
         </div>
       )}
       {entries.length === 0 ? (
@@ -151,11 +145,6 @@ export const UrineTracker: React.FC<UrineTrackerProps> = ({
                 <span className="w-20 text-sm font-black text-slate-900 tabular-nums shrink-0">
                   {e.volume_ml} <span className="text-[11px] text-slate-400 font-semibold">ml</span>
                 </span>
-                {e.notes && e.notes !== 'Quick log' ? (
-                  <span className="text-[11px] text-slate-400 italic truncate">{e.notes}</span>
-                ) : (
-                  <span className="hidden sm:inline-block text-[11px] text-slate-300 font-semibold italic">-</span>
-                )}
               </div>
               <button onClick={() => onDeleteEntry(e.id)}
                 className="p-1.5 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all duration-150 active:scale-90 shrink-0 w-8 flex justify-end">
