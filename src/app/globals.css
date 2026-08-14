@@ -123,13 +123,14 @@
 
 /* ─── Bottom nav (mobile) ─── */
 .bottom-nav {
-  @apply fixed bottom-0 left-0 right-0 z-50 glass border-t border-slate-200/80;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  @apply fixed bottom-0 left-0 right-0 z-50 glass border-t border-slate-200/60 shadow-[0_-4px_20px_rgba(0,0,0,0.03)];
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  padding-top: 8px;
 }
 
 /* ─── Safe-area padding ─── */
 .pb-safe {
-  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 /* ─── Row hover ─── */

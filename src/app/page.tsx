@@ -39,7 +39,7 @@ import { ScheduleTracker } from '@/components/ScheduleTracker';
 import { AlarmModal } from '@/components/AlarmModal';
 import { TrendsChart } from '@/components/TrendsChart';
 import { ExportReport } from '@/components/ExportReport';
-import { AlertTriangle, X, HeartPulse } from 'lucide-react';
+import { AlertTriangle, X, HeartPulse, ClipboardList, TrendingUp, Bell, FileDown } from 'lucide-react';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
 export default function Dashboard() {
@@ -426,25 +426,31 @@ export default function Dashboard() {
 
       {/* ── Mobile Bottom Navigation ── */}
       <nav className="bottom-nav sm:hidden">
-        <div className="flex items-stretch">
+        <div className="flex items-center justify-around px-2">
           {([
-            { tab: 'dashboard', icon: '💧', label: 'Track' },
-            { tab: 'trends',    icon: '📈', label: 'Trends' },
-            { tab: 'schedules', icon: '⏰', label: 'Alarms' },
-            { tab: 'export',    icon: '📄', label: 'Report' },
-          ] as const).map(({ tab, icon, label }) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-all duration-200 active:scale-95 ${
-                activeTab === tab ? 'text-slate-900' : 'text-slate-400'
-              }`}
-            >
-              <span className={`text-xl leading-none transition-transform duration-200 ${activeTab === tab ? 'scale-110' : 'scale-100'}`}>{icon}</span>
-              <span className={`text-[10px] font-extrabold uppercase tracking-wide transition-all duration-200 ${activeTab === tab ? 'text-slate-900' : 'text-slate-400'}`}>{label}</span>
-              {activeTab === tab && <span className="w-4 h-0.5 rounded-full bg-slate-900 mt-0.5" />}
-            </button>
-          ))}
+            { tab: 'dashboard', icon: ClipboardList, label: 'Track' },
+            { tab: 'trends',    icon: TrendingUp,    label: 'Trends' },
+            { tab: 'schedules', icon: Bell,          label: 'Alarms' },
+            { tab: 'export',    icon: FileDown,      label: 'Report' },
+          ] as const).map(({ tab, icon: Icon, label }) => {
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`relative flex-1 flex flex-col items-center justify-center py-2.5 gap-1 transition-all duration-200 active:scale-90 ${
+                  isActive ? 'text-blue-600 font-extrabold' : 'text-slate-400 font-medium'
+                }`}
+              >
+                <div className={`p-1.5 rounded-xl transition-all duration-200 ${
+                  isActive ? 'bg-blue-50 text-blue-600 scale-105 shadow-[0_2px_8px_rgba(59,130,246,0.08)]' : 'text-slate-400'
+                }`}>
+                  <Icon className="w-5 h-5 transition-transform duration-200" />
+                </div>
+                <span className="text-[10px] uppercase tracking-wider">{label}</span>
+              </button>
+            );
+          })}
         </div>
       </nav>
 
