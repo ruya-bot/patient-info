@@ -7,6 +7,7 @@ import { exportToPDF, exportToCSV } from '@/lib/export-pdf';
 import { Download, FileSpreadsheet, FileText, FileCode } from 'lucide-react';
 
 interface ExportReportProps {
+  patientName: string;
   selectedDate: string;
   summary: DailySummary;
   waterList: WaterIntakeEntry[];
@@ -15,6 +16,7 @@ interface ExportReportProps {
 }
 
 export const ExportReport: React.FC<ExportReportProps> = ({
+  patientName,
   selectedDate,
   summary,
   waterList,
@@ -26,7 +28,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
   const handleExcelExport = async () => {
     setIsExporting(true);
     try {
-      await exportToExcel('Yousef', selectedDate, summary, waterList, urineList, sugarList);
+      await exportToExcel(patientName, selectedDate, summary, waterList, urineList, sugarList);
     } catch (err) {
       console.error('Excel Export Error:', err);
     } finally {
@@ -36,7 +38,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
 
   const handlePDFExport = () => {
     try {
-      exportToPDF('Yousef', selectedDate, summary, waterList, urineList, sugarList);
+      exportToPDF(patientName, selectedDate, summary, waterList, urineList, sugarList);
     } catch (err) {
       console.error('PDF Export Error:', err);
     }

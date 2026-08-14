@@ -450,30 +450,30 @@ export default function Dashboard() {
 
       <AlarmModal pendingReminder={pendingAlarm} onMarkGiven={handleAlarmMarkGiven} onSnooze={handleAlarmSnooze} onMarkMissed={handleAlarmMarkMissed} />
 
-      {/* ── Premium Intro Screen ── */}
+      {/* ── Premium Intro Screen (White Theme) ── */}
       {renderIntro && (
-        <div className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 text-white transition-opacity duration-500 ease-out ${
+        <div className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#f0f4f8] text-slate-900 transition-opacity duration-500 ease-out ${
           introFadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}>
           <div className="flex flex-col items-center max-w-xs text-center space-y-6">
             {/* Heart logo */}
-            <div className="intro-glow w-20 h-20 rounded-[28px] bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <HeartPulse className="w-10 h-10 text-white" />
+            <div className="intro-glow w-20 h-20 rounded-[28px] bg-white border border-slate-200/80 flex items-center justify-center shadow-md">
+              <HeartPulse className="w-10 h-10 text-blue-600" />
             </div>
             
             {/* Text details */}
             <div className="space-y-1">
-              <h2 className="intro-title text-2xl font-black tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
+              <h2 className="intro-title text-2xl font-black tracking-tight text-slate-900">
                 Patient Monitor
               </h2>
-              <p className="intro-subtitle text-xs text-slate-400 font-bold uppercase tracking-wider">
+              <p className="intro-subtitle text-xs text-slate-500 font-bold uppercase tracking-wider">
                 Yousef Care Dashboard
               </p>
             </div>
 
             {/* Premium Loader Bar */}
-            <div className="w-36 h-1 bg-slate-800 rounded-full overflow-hidden">
-              <div className="intro-progress h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" />
+            <div className="w-36 h-1 bg-slate-200 rounded-full overflow-hidden">
+              <div className="intro-progress h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full" />
             </div>
           </div>
         </div>

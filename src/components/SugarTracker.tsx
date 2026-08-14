@@ -101,13 +101,13 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
   const statusColorMap = {
     normal: 'bg-emerald-50 text-emerald-800 border-emerald-200',
     warning: 'bg-amber-50 text-amber-800 border-amber-200',
-    high: 'bg-red-50 text-red-800 border-red-200'
+    danger: 'bg-red-50 text-red-800 border-red-200'
   };
 
   const statusBadgeMap = {
     normal: '🟢 Normal',
     warning: '🟡 Borderline',
-    high: '🔴 High'
+    danger: '🔴 High'
   };
 
   return (
@@ -274,8 +274,8 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
                       {item.blood_sugar_mgdl} <span className="text-[10px] text-slate-500 font-bold">mg/dL</span>
                     </td>
                     <td className="py-3 px-3">
-                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${statusColorMap[status]}`}>
-                        {statusBadgeMap[status]}
+                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${statusColorMap[status.status]}`}>
+                        {statusBadgeMap[status.status]}
                       </span>
                     </td>
                     <td className="py-3 px-3 font-bold text-slate-700">
