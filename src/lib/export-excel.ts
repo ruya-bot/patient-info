@@ -167,3 +167,178 @@ export async function exportToExcel(
   document.body.removeChild(a);
   window.URL.revokeObjectURL(url);
 }
+
+export async function exportMultiDayExcel(
+  patientName: string,
+  startDate: string,
+  endDate: string,
+  waterList: WaterIntakeEntry[] = [],
+  urineList: UrineOutputEntry[] = [],
+  sugarList: SugarMonitorEntry[] = []
+): Promise<void> {
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'Patient Monitoring System';
+  workbook.created = new Date();
+
+  const safeWater = Array.isArray(waterList) ? waterList : [];
+  const safeUrine = Array.isArray(urineList) ? urineList : [];
+  const safeSugar = Array.isArray(sugarList) ? sugarList : [];
+
+  // Generate date list in range
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const dateStrings: string[] = [];
+  const curr = new Date(start);
+  while (curr <= end) {
+    dateStrings.push(curr.toISOString().split('T')[0]);
+    curr.setDate(curr.getDate() + 1);
+  }
+
+  // 1. Tab 1: Range Summary Table
+  const summarySheet = workbook.addWorksheet('Multi-Day Summary');
+
+  // Title Block
+  summarySheet.mergeCells('A1:G1');
+  const titleCell = summarySheet.getCell('A1');
+  titleCell.value = `PATIENT MULTI-DAY SUMMARY REPORT - ${(patientName || 'Yousef').toUpperCase()}`;
+  titleCell.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FFFFFF' } };
+  titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0F172A' } };
+  titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  summarySheet.getRow(1).height = 36;
+
+  summarySheet.mergeCells('A2:G2');
+  const subCell = summarySheet.getCell('A2');
+  subCell.value = `Period: ${startDate} to ${endDate} (${dateStrings.length} days) | Exported: ${new Date().toLocaleString()}`;
+  subCell.font = { name: 'Segoe UI', size: 9, italic: true, color: { argb: '64748B' } };
+  subCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  summarySheet.getRow(2).height = 20;
+
+  summarySheet.addRow([]);
+
+  summarySheet.addRow(['Date', 'Total Intake (ml)', 'Total Output (ml)', 'Net Fluid Balance (ml)', 'Avg Blood Sugar (mg/dL)', 'Total Insulin Given (U)', 'Glucose Checks Count']);
+  summarySheet.getRow(4).font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFF' } };
+  summarySheet.getRow(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '3B82F6' } }; // blue-500
+  summarySheet.getRow(4).alignment = { horizontal: 'center' };
+  summarySheet.getRow(4).height = 24;
+
+  dateStrings.forEach(dateStr => {
+    const dayWater = safeWater.filter(w => w.entry_date === dateStr);
+    const dayUrine = safeUrine.filter(u => u.entry_date === dateStr);
+    const daySugar = safeSugar.filter(s => s.entry_date === dateStr);
+
+    const dayIntake = dayWater.reduce((acc, c) => acc + Number(c.amount_ml || 0), 0);
+    const dayOutput = dayUrine.reduce((acc, c) => acc + Number(c.volume_ml || 0), 0);
+    const dayBalance = dayIntake - dayOutput;
+    
+    const glucoseValues = daySugar.map(s => Number(s.blood_sugar_mgdl)).filter(v => !isNaN(v));
+    const avgGlucose = glucoseValues.length > 0
+      ? Math.round(glucoseValues.reduce((a, b) => a + b, 0) / glucoseValues.length)
+      : 0;
+
+    const dayInsulin = daySugar.reduce((acc, c) => acc + Number(c.insulin_units || 0), 0);
+
+    summarySheet.addRow([
+      dateStr,
+      dayIntake,
+      dayOutput,
+      dayBalance,
+      avgGlucose > 0 ? avgGlucose : 'N/A',
+      dayInsulin,
+      daySugar.length
+    ]);
+  });
+
+  // Align cells in summary
+  for (let r = 5; r <= summarySheet.rowCount; r++) {
+    summarySheet.getRow(r).alignment = { horizontal: 'center' };
+    summarySheet.getRow(r).font = { name: 'Segoe UI', size: 10 };
+  }
+
+  summarySheet.columns = [
+    { width: 15 },
+    { width: 20 },
+    { width: 20 },
+    { width: 22 },
+    { width: 24 },
+    { width: 24 },
+    { width: 22 }
+  ];
+
+  // 2. Tab 2: Detailed Fluids Log
+  const fluidsSheet = workbook.addWorksheet('Fluids Log');
+  fluidsSheet.addRow(['Date', 'Time', 'Liquid Type', 'Amount (ml)', 'Notes']);
+  fluidsSheet.getRow(1).font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFF' } };
+  fluidsSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1E293B' } };
+  fluidsSheet.getRow(1).alignment = { horizontal: 'center' };
+  
+  safeWater.forEach(w => {
+    fluidsSheet.addRow([w.entry_date, formatTo12Hr(w.entry_time), w.liquid_type, w.amount_ml, w.notes || '']);
+  });
+  fluidsSheet.columns = [
+    { width: 15 },
+    { width: 15 },
+    { width: 20 },
+    { width: 16 },
+    { width: 25 }
+  ];
+
+  // 3. Tab 3: Detailed Urine Log
+  const urineSheet = workbook.addWorksheet('Urine Output Log');
+  urineSheet.addRow(['Date', 'Time', 'Volume (ml)']);
+  urineSheet.getRow(1).font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFF' } };
+  urineSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1E293B' } };
+  urineSheet.getRow(1).alignment = { horizontal: 'center' };
+
+  safeUrine.forEach(u => {
+    urineSheet.addRow([u.entry_date, formatTo12Hr(u.entry_time), u.volume_ml]);
+  });
+  urineSheet.columns = [
+    { width: 15 },
+    { width: 15 },
+    { width: 18 }
+  ];
+
+  // 4. Tab 4: Detailed Sugar & Insulin Log
+  const sugarSheet = workbook.addWorksheet('Glucose & Insulin Log');
+  sugarSheet.addRow(['Date', 'Time', 'Blood Sugar (mg/dL)', 'Status', 'Insulin Type', 'Units']);
+  sugarSheet.getRow(1).font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFF' } };
+  sugarSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1E293B' } };
+  sugarSheet.getRow(1).alignment = { horizontal: 'center' };
+
+  safeSugar.forEach(s => {
+    const status = s.blood_sugar_mgdl >= 70 && s.blood_sugar_mgdl <= 140 ? 'Normal' : (s.blood_sugar_mgdl < 70 ? 'Low' : 'High');
+    sugarSheet.addRow([
+      s.entry_date,
+      formatTo12Hr(s.entry_time),
+      s.blood_sugar_mgdl,
+      status,
+      s.insulin_type || '-',
+      s.insulin_units || '-'
+    ]);
+  });
+  sugarSheet.columns = [
+    { width: 15 },
+    { width: 15 },
+    { width: 22 },
+    { width: 15 },
+    { width: 20 },
+    { width: 15 }
+  ];
+
+  // Set grid lines visible for all sheets
+  [summarySheet, fluidsSheet, urineSheet, sugarSheet].forEach(sh => {
+    sh.views = [{ showGridLines: true }];
+  });
+
+  // Generate and Download
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `patient_multiday_${startDate}_to_${endDate}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+}

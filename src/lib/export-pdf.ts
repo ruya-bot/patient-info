@@ -215,3 +215,217 @@ export function exportToCSV(
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+export function exportMultiDayPDF(
+  patientName: string,
+  startDate: string,
+  endDate: string,
+  waterList: WaterIntakeEntry[] = [],
+  urineList: UrineOutputEntry[] = [],
+  sugarList: SugarMonitorEntry[] = []
+): void {
+  const doc = new jsPDF();
+  
+  const safeWater = Array.isArray(waterList) ? waterList : [];
+  const safeUrine = Array.isArray(urineList) ? urineList : [];
+  const safeSugar = Array.isArray(sugarList) ? sugarList : [];
+
+  // Generate date list in range
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const dateStrings: string[] = [];
+  const curr = new Date(start);
+  while (curr <= end) {
+    dateStrings.push(curr.toISOString().split('T')[0]);
+    curr.setDate(curr.getDate() + 1);
+  }
+
+  // Calculate day-by-day summary rows
+  const summaryRows: any[] = [];
+  let totalIntakeAll = 0;
+  let totalOutputAll = 0;
+  let totalInsulinAll = 0;
+
+  dateStrings.forEach(dateStr => {
+    const dayWater = safeWater.filter(w => w.entry_date === dateStr);
+    const dayUrine = safeUrine.filter(u => u.entry_date === dateStr);
+    const daySugar = safeSugar.filter(s => s.entry_date === dateStr);
+
+    const dayIntake = dayWater.reduce((acc, c) => acc + Number(c.amount_ml || 0), 0);
+    const dayOutput = dayUrine.reduce((acc, c) => acc + Number(c.volume_ml || 0), 0);
+    const dayBalance = dayIntake - dayOutput;
+    
+    const glucoseValues = daySugar.map(s => Number(s.blood_sugar_mgdl)).filter(v => !isNaN(v));
+    const avgGlucose = glucoseValues.length > 0
+      ? Math.round(glucoseValues.reduce((a, b) => a + b, 0) / glucoseValues.length)
+      : 0;
+
+    const dayInsulin = daySugar.reduce((acc, c) => acc + Number(c.insulin_units || 0), 0);
+
+    totalIntakeAll += dayIntake;
+    totalOutputAll += dayOutput;
+    totalInsulinAll += dayInsulin;
+
+    summaryRows.push([
+      dateStr,
+      `${dayIntake} ml`,
+      `${dayOutput} ml`,
+      `${dayBalance} ml`,
+      avgGlucose > 0 ? `${avgGlucose} mg/dL` : 'N/A',
+      `${dayInsulin} U`,
+      `${daySugar.length} rdgs`
+    ]);
+  });
+
+  // Page 1: Elegant range title and main aggregated summary table
+  doc.setFillColor(15, 23, 42); // slate-900
+  doc.rect(0, 0, 210, 30, 'F');
+
+  // Accent Line
+  doc.setFillColor(59, 130, 246);
+  doc.rect(0, 30, 210, 2, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(15);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Multi-Day Health Report — ${patientName || 'Yousef'}`, 14, 18);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(148, 163, 184);
+  doc.text(`Period: ${startDate} to ${endDate} (${dateStrings.length} days)`, 14, 25);
+
+  let currentY = 42;
+
+  // Title for Summary Table
+  doc.setTextColor(15, 23, 42);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Date Range Overview Summary', 14, currentY);
+  currentY += 4;
+
+  autoTable(doc, {
+    startY: currentY,
+    head: [['Date', 'Total Intake', 'Total Output', 'Net Balance', 'Avg Glucose', 'Insulin Logged', 'Glucose Checks']],
+    body: summaryRows,
+    theme: 'grid',
+    headStyles: { 
+      fillColor: [59, 130, 246], 
+      textColor: [255, 255, 255], 
+      fontStyle: 'bold', 
+      fontSize: 9,
+      halign: 'center'
+    },
+    styles: { 
+      halign: 'center', 
+      fontSize: 9, 
+      textColor: [15, 23, 42] 
+    }
+  });
+
+  // Page 2+: Day-by-Day detailed logs
+  dateStrings.forEach((dateStr) => {
+    const dayWater = safeWater.filter(w => w.entry_date === dateStr);
+    const dayUrine = safeUrine.filter(u => u.entry_date === dateStr);
+    const daySugar = safeSugar.filter(s => s.entry_date === dateStr);
+
+    // Skip printing pages for empty days to avoid paper waste
+    if (dayWater.length === 0 && dayUrine.length === 0 && daySugar.length === 0) return;
+
+    doc.addPage();
+    
+    // Day Banner
+    doc.setFillColor(30, 41, 59); // slate-800
+    doc.rect(0, 0, 210, 15, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Detailed Logs — ${dateStr}`, 14, 10);
+
+    let dayY = 22;
+
+    // 1. Water Intake
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Water & Fluids Log', 14, dayY);
+    dayY += 3;
+
+    const wRows = dayWater.length > 0
+      ? dayWater.map(w => [formatTo12Hr(w.entry_time), w.liquid_type, `${w.amount_ml} ml`, w.notes || '-'])
+      : [['-', 'No fluid entries logged', '-', '-']];
+
+    autoTable(doc, {
+      startY: dayY,
+      head: [['Time', 'Liquid Type', 'Amount', 'Notes']],
+      body: wRows,
+      theme: 'striped',
+      headStyles: { fillColor: [71, 85, 105], fontSize: 8 },
+      styles: { fontSize: 8 },
+      alternateRowStyles: { fillColor: [248, 250, 252] }
+    });
+
+    dayY = (doc as any).lastAutoTable.finalY + 6;
+
+    // 2. Urine Output
+    doc.setFont('helvetica', 'bold');
+    doc.text('Urine Output Log', 14, dayY);
+    dayY += 3;
+
+    const uRows = dayUrine.length > 0
+      ? dayUrine.map(u => [formatTo12Hr(u.entry_time), `${u.volume_ml} ml`])
+      : [['-', 'No urine output logged']];
+
+    autoTable(doc, {
+      startY: dayY,
+      head: [['Time', 'Volume']],
+      body: uRows,
+      theme: 'striped',
+      headStyles: { fillColor: [71, 85, 105], fontSize: 8 },
+      styles: { fontSize: 8 },
+      alternateRowStyles: { fillColor: [248, 250, 252] }
+    });
+
+    dayY = (doc as any).lastAutoTable.finalY + 6;
+
+    // 3. Glucose & Insulin
+    doc.setFont('helvetica', 'bold');
+    doc.text('Blood Sugar & Insulin Monitor', 14, dayY);
+    dayY += 3;
+
+    const sRows = daySugar.length > 0
+      ? daySugar.map(s => {
+          const glucoseVal = s.blood_sugar_mgdl;
+          const status = glucoseVal >= 70 && glucoseVal <= 140 ? 'Normal' : (glucoseVal < 70 ? 'Low' : 'High');
+          return [
+            formatTo12Hr(s.entry_time),
+            `${glucoseVal} mg/dL`,
+            status,
+            s.insulin_type || '-',
+            s.insulin_units ? `${s.insulin_units} U` : '-'
+          ];
+        })
+      : [['-', 'No blood sugar logs', '-', '-', '-']];
+
+    autoTable(doc, {
+      startY: dayY,
+      head: [['Time', 'Glucose Level', 'Status', 'Insulin Type', 'Units']],
+      body: sRows,
+      theme: 'striped',
+      headStyles: { fillColor: [71, 85, 105], fontSize: 8 },
+      styles: { fontSize: 8 },
+      alternateRowStyles: { fillColor: [248, 250, 252] }
+    });
+  });
+
+  // Page Numbers Footer
+  const pageCount = (doc as any).internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text(`Page ${i} of ${pageCount} — Generated by Yousef Patient Monitor`, 14, 287);
+  }
+
+  doc.save(`patient_multiday_${startDate}_to_${endDate}.pdf`);
+}
