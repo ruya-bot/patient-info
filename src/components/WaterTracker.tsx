@@ -12,11 +12,11 @@ interface WaterTrackerProps {
 }
 
 const QUICK_PRESETS = [
+  { label: '100ml', emoji: '💧', liquid: 'Water',    amount: 100 },
   { label: '200ml', emoji: '💧', liquid: 'Water',    amount: 200 },
-  { label: '250ml', emoji: '💧', liquid: 'Water',    amount: 250 },
-  { label: '250ml Tea', emoji: '🍵', liquid: 'Tea',  amount: 250 },
-  { label: '150ml Juice', emoji: '🥤', liquid: 'Juice', amount: 150 },
-  { label: '300ml IV', emoji: '💉', liquid: 'IV Fluid', amount: 300 },
+  { label: '100ml Tea', emoji: '🍵', liquid: 'Tea',  amount: 100 },
+  { label: '100ml Juice', emoji: '🥤', liquid: 'Juice', amount: 100 },
+  { label: '100ml IV', emoji: '💉', liquid: 'IV Fluid', amount: 100 },
 ];
 
 export const WaterTracker: React.FC<WaterTrackerProps> = ({
@@ -25,7 +25,7 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
   const now = () => new Date().toTimeString().slice(0, 5);
   const [time, setTime] = useState(now());
   const [liquidType, setLiquidType] = useState('Water');
-  const [amountMl, setAmountMl] = useState<number | ''>(250);
+  const [amountMl, setAmountMl] = useState<number | ''>(100);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [quickSaving, setQuickSaving] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
     setSaving(true);
     try {
       await onAddEntry({ entry_date: selectedDate, entry_time: time || now(), liquid_type: liquidType, amount_ml: Number(amountMl), notes: notes.trim() || null });
-      setNotes(''); setAmountMl(250); setShowForm(false);
+      setNotes(''); setAmountMl(100); setShowForm(false);
     } finally { setSaving(false); }
   };
 

@@ -12,9 +12,10 @@ interface UrineTrackerProps {
 }
 
 const QUICK_PRESETS = [
-  { label: '150ml', volume: 150 },
-  { label: '250ml', volume: 250 },
-  { label: '350ml', volume: 350 },
+  { label: '100ml', volume: 100 },
+  { label: '200ml', volume: 200 },
+  { label: '300ml', volume: 300 },
+  { label: '400ml', volume: 400 },
   { label: '500ml', volume: 500 },
 ];
 
@@ -23,7 +24,7 @@ export const UrineTracker: React.FC<UrineTrackerProps> = ({
 }) => {
   const now = () => new Date().toTimeString().slice(0, 5);
   const [time, setTime] = useState(now());
-  const [volumeMl, setVolumeMl] = useState<number | ''>(250);
+  const [volumeMl, setVolumeMl] = useState<number | ''>(100);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [quickSaving, setQuickSaving] = useState<number | null>(null);
@@ -44,7 +45,7 @@ export const UrineTracker: React.FC<UrineTrackerProps> = ({
     setSaving(true);
     try {
       await onAddEntry({ entry_date: selectedDate, entry_time: time || now(), volume_ml: Number(volumeMl), notes: notes.trim() || null });
-      setNotes(''); setVolumeMl(250); setShowForm(false);
+      setNotes(''); setVolumeMl(100); setShowForm(false);
     } finally { setSaving(false); }
   };
 
