@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { DailySummary, WaterIntakeEntry, UrineOutputEntry, SugarMonitorEntry } from '@/types';
+import { formatTo12Hr } from './storage';
 
 export function exportToPDF(
   patientName: string,
@@ -20,116 +21,158 @@ export function exportToPDF(
   const totalOutput = summary?.total_output_ml ?? safeUrine.reduce((acc, curr) => acc + Number(curr.volume_ml || 0), 0);
   const netBalance = totalIntake - totalOutput;
 
-  // Header Banner
-  doc.setFillColor(31, 56, 100);
-  doc.rect(0, 0, 210, 25, 'F');
+  // 1. Elegant Header Band (Dark Slate)
+  doc.setFillColor(15, 23, 42); // slate-900
+  doc.rect(0, 0, 210, 30, 'F');
 
+  // Accent Line (Royal Blue)
+  doc.setFillColor(59, 130, 246); // blue-500
+  doc.rect(0, 30, 210, 2, 'F');
+
+  // Title Text
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text(`Patient Health Monitor — ${patientName || 'Yousef'}`, 14, 16);
+  doc.text(`Patient Health Monitor — ${patientName || 'Yousef'}`, 14, 18);
 
-  doc.setFontSize(10);
+  // Subtitle
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Date: ${selectedDate}`, 160, 16);
+  doc.setTextColor(148, 163, 184); // slate-400
+  doc.text('Confidential Home Care Health Report', 14, 25);
 
-  let currentY = 32;
+  // Date
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text(`Date: ${selectedDate}`, 160, 20);
 
-  // Daily Summary Header
-  doc.setTextColor(31, 56, 100);
+  let currentY = 42;
+
+  // 2. Daily Summary Section Header
+  doc.setTextColor(15, 23, 42);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.text('Daily Summary Overview', 14, currentY);
   currentY += 4;
 
-  // Summary Table
+  // Summary Table (Styled like a clean dashboard card)
   autoTable(doc, {
     startY: currentY,
-    head: [['Intake (ml)', 'Output (ml)', 'Net Balance (ml)', 'Avg Sugar (mg/dL)', 'Total Insulin (U)', 'Readings']],
+    head: [['Total Intake', 'Total Output', 'Net Balance', 'Avg Glucose', 'Insulin Logged', 'Glucose Checks']],
     body: [[
       `${totalIntake} ml`,
       `${totalOutput} ml`,
       `${netBalance} ml`,
       summary?.avg_blood_sugar_mgdl ? `${summary.avg_blood_sugar_mgdl} mg/dL` : 'N/A',
-      `${summary?.total_insulin_units ?? 0} Units`,
-      `${safeSugar.length}`
+      `${summary?.total_insulin_units ?? 0} U`,
+      `${safeSugar.length} readings`
     ]],
     theme: 'grid',
-    headStyles: { fillColor: [31, 56, 100], textColor: [255, 255, 255], fontStyle: 'bold' },
-    styles: { halign: 'center', fontSize: 10 }
+    headStyles: { 
+      fillColor: [59, 130, 246], 
+      textColor: [255, 255, 255], 
+      fontStyle: 'bold', 
+      fontSize: 9,
+      halign: 'center'
+    },
+    styles: { 
+      halign: 'center', 
+      fontSize: 10, 
+      fontStyle: 'bold', 
+      textColor: [15, 23, 42] 
+    },
+    columnStyles: {
+      2: { textColor: netBalance < 0 ? [220, 38, 38] : [16, 185, 129] } // Red if negative, green if positive
+    }
   });
 
-  currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
+  currentY = (doc as any).lastAutoTable.finalY + 12;
 
-  // Water Intake Section
-  doc.text('Water Intake Log', 14, currentY);
+  // 3. Water Intake Section
+  doc.setTextColor(15, 23, 42);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Water & Fluids Log', 14, currentY);
   currentY += 4;
 
   const waterRows = safeWater.length > 0
-    ? safeWater.map(w => [w.entry_time, w.liquid_type, `${w.amount_ml} ml`, w.notes || '-'])
-    : [['-', 'No entries recorded for this date', '-', '-']];
+    ? safeWater.map(w => [formatTo12Hr(w.entry_time), w.liquid_type, `${w.amount_ml} ml`, w.notes || '-'])
+    : [['-', 'No fluid entries logged for this date', '-', '-']];
 
   autoTable(doc, {
     startY: currentY,
     head: [['Time', 'Liquid Type', 'Amount', 'Notes']],
     body: waterRows,
     theme: 'striped',
-    headStyles: { fillColor: [72, 101, 129] },
-    styles: { fontSize: 9 }
+    headStyles: { fillColor: [30, 41, 59], fontSize: 9 }, // Slate-800
+    styles: { fontSize: 9 },
+    alternateRowStyles: { fillColor: [248, 250, 252] } // Slate-50
   });
 
-  currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
+  currentY = (doc as any).lastAutoTable.finalY + 12;
 
-  // Urine Output Section
+  // 4. Urine Output Section (Clean list, no notes)
+  doc.setTextColor(15, 23, 42);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
   doc.text('Urine Output Log', 14, currentY);
   currentY += 4;
 
   const urineRows = safeUrine.length > 0
-    ? safeUrine.map(u => [u.entry_time, `${u.volume_ml} ml`, u.notes || '-'])
-    : [['-', 'No entries recorded for this date', '-']];
+    ? safeUrine.map(u => [formatTo12Hr(u.entry_time), `${u.volume_ml} ml`])
+    : [['-', 'No urine output logged for this date']];
 
   autoTable(doc, {
     startY: currentY,
-    head: [['Time', 'Volume', 'Notes']],
+    head: [['Time', 'Volume']],
     body: urineRows,
     theme: 'striped',
-    headStyles: { fillColor: [72, 101, 129] },
-    styles: { fontSize: 9 }
+    headStyles: { fillColor: [30, 41, 59], fontSize: 9 },
+    styles: { fontSize: 9 },
+    alternateRowStyles: { fillColor: [248, 250, 252] }
   });
 
-  currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
+  currentY = (doc as any).lastAutoTable.finalY + 12;
 
-  // Blood Sugar & Insulin Section
+  // 5. Blood Sugar & Insulin Section (Clean columns, no notes)
+  doc.setTextColor(15, 23, 42);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
   doc.text('Blood Sugar & Insulin Monitor', 14, currentY);
   currentY += 4;
 
   const sugarRows = safeSugar.length > 0
-    ? safeSugar.map(s => [
-        s.entry_time,
-        `${s.blood_sugar_mgdl} mg/dL`,
-        s.blood_sugar_mgdl >= 70 && s.blood_sugar_mgdl <= 140 ? 'Normal' : (s.blood_sugar_mgdl < 70 ? 'Low' : 'High'),
-        s.insulin_type || '-',
-        s.insulin_units ? `${s.insulin_units} U` : '-',
-        s.notes || '-'
-      ])
-    : [['-', 'No glucose readings for this date', '-', '-', '-', '-']];
+    ? safeSugar.map(s => {
+        const glucoseVal = s.blood_sugar_mgdl;
+        const status = glucoseVal >= 70 && glucoseVal <= 140 ? 'Normal' : (glucoseVal < 70 ? 'Low' : 'High');
+        return [
+          formatTo12Hr(s.entry_time),
+          `${glucoseVal} mg/dL`,
+          status,
+          s.insulin_type || '-',
+          s.insulin_units ? `${s.insulin_units} U` : '-'
+        ];
+      })
+    : [['-', 'No blood sugar logs for this date', '-', '-', '-']];
 
   autoTable(doc, {
     startY: currentY,
-    head: [['Time', 'Glucose', 'Status', 'Insulin Type', 'Units', 'Notes']],
+    head: [['Time', 'Glucose Level', 'Status', 'Insulin Type', 'Units']],
     body: sugarRows,
     theme: 'striped',
-    headStyles: { fillColor: [72, 101, 129] },
-    styles: { fontSize: 9 }
+    headStyles: { fillColor: [30, 41, 59], fontSize: 9 },
+    styles: { fontSize: 9 },
+    alternateRowStyles: { fillColor: [248, 250, 252] }
   });
 
-  // Footer Page Number
-  const pageCount = (doc as unknown as { internal: { getNumberOfPages: () => number } }).internal.getNumberOfPages();
+  // Footer Page Numbers
+  const pageCount = (doc as any).internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(8);
-    doc.setTextColor(150);
-    doc.text(`Page ${i} of ${pageCount} — Generated by Yousef Patient Monitor`, 14, 285);
+    doc.setTextColor(148, 163, 184); // slate-400
+    doc.text(`Page ${i} of ${pageCount} — Generated by Yousef Patient Monitor`, 14, 287);
   }
 
   doc.save(`patient_monitoring_${selectedDate}.pdf`);
@@ -149,17 +192,17 @@ export function exportToCSV(
 
   csv += `--- WATER INTAKE ---\nTime,Liquid Type,Amount (ml),Notes\n`;
   safeWater.forEach(w => {
-    csv += `"${w.entry_time}","${w.liquid_type}",${w.amount_ml},"${w.notes || ''}"\n`;
+    csv += `"${formatTo12Hr(w.entry_time)}","${w.liquid_type}",${w.amount_ml},"${w.notes || ''}"\n`;
   });
 
-  csv += `\n--- URINE OUTPUT ---\nTime,Volume (ml),Notes\n`;
+  csv += `\n--- URINE OUTPUT ---\nTime,Volume (ml)\n`;
   safeUrine.forEach(u => {
-    csv += `"${u.entry_time}",${u.volume_ml},"${u.notes || ''}"\n`;
+    csv += `"${formatTo12Hr(u.entry_time)}",${u.volume_ml}\n`;
   });
 
-  csv += `\n--- BLOOD SUGAR & INSULIN ---\nTime,Blood Sugar (mg/dL),Insulin Type,Insulin Units,Notes\n`;
+  csv += `\n--- BLOOD SUGAR & INSULIN ---\nTime,Blood Sugar (mg/dL),Insulin Type,Insulin Units\n`;
   safeSugar.forEach(s => {
-    csv += `"${s.entry_time}",${s.blood_sugar_mgdl},"${s.insulin_type || ''}",${s.insulin_units || ''},"${s.notes || ''}"\n`;
+    csv += `"${formatTo12Hr(s.entry_time)}",${s.blood_sugar_mgdl},"${s.insulin_type || ''}",${s.insulin_units || ''}\n`;
   });
 
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
