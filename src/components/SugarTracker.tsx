@@ -269,56 +269,60 @@ export const SugarTracker: React.FC<SugarTrackerProps> = ({
           <p className="text-xs font-semibold text-slate-500">No blood sugar logged yet for this date.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-wider bg-slate-50/80">
-                <th className="py-2.5 px-3 rounded-l-xl">Time</th>
-                <th className="py-2.5 px-3">Blood Sugar</th>
-                <th className="py-2.5 px-3">Status</th>
-                <th className="py-2.5 px-3">Insulin</th>
-                <th className="py-2.5 px-3">Notes</th>
-                <th className="py-2.5 px-3 text-right rounded-r-xl">Delete</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
-              {entries.map(item => {
-                const status = getGlucoseStatus(item.blood_sugar_mgdl);
-                return (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition">
-                    <td className="py-3 px-3 font-extrabold text-slate-900">
-                      <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-slate-400" />{item.entry_time}</span>
-                    </td>
-                    <td className="py-3 px-3 font-extrabold text-slate-900">
-                      {item.blood_sugar_mgdl} <span className="text-[10px] text-slate-500 font-bold">mg/dL</span>
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${statusColorMap[status.status]}`}>
-                        {statusBadgeMap[status.status]}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 font-bold text-slate-700">
-                      {item.insulin_units ? (
-                        <span className="inline-flex items-center gap-1 text-purple-700 font-extrabold bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-lg">
-                          <Syringe className="w-3 h-3" />
-                          {item.insulin_type || 'Insulin'}: {item.insulin_units} U
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 text-[11px]">Check only</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-3 text-slate-500 font-medium">{item.notes || '-'}</td>
-                    <td className="py-3 px-3 text-right">
-                      <button onClick={() => onDeleteEntry(item.id)}
-                        className="p-1 text-slate-400 hover:text-red-600 transition rounded-lg hover:bg-red-50" title="Delete">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="space-y-2 -mx-1">
+          {entries.map((item, i) => {
+            const status = getGlucoseStatus(item.blood_sugar_mgdl);
+            return (
+              <div
+                key={item.id}
+                className="log-row flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-2xl border border-slate-100 bg-slate-50/50 sm:bg-transparent sm:border-0 hover:bg-slate-50 transition-colors duration-150"
+                style={{ animationDelay: `${i * 40}ms` }}
+              >
+                {/* Left side: Time, Value, Status & Insulin */}
+                <div className="flex flex-wrap items-center gap-2.5 min-w-0">
+                  <div className="flex items-center gap-1.5 text-slate-400 text-xs shrink-0 font-bold">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span className="tabular-nums">{item.entry_time.slice(0, 5)}</span>
+                  </div>
+                  
+                  <div className="text-sm font-black text-slate-900 shrink-0">
+                    {item.blood_sugar_mgdl} <span className="text-[10px] text-slate-400 font-semibold">mg/dL</span>
+                  </div>
+
+                  <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${statusColorMap[status.status]}`}>
+                    {statusBadgeMap[status.status]}
+                  </span>
+
+                  {item.insulin_units ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] text-purple-700 font-extrabold bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-lg shrink-0">
+                      <Syringe className="w-3 h-3" />
+                      {item.insulin_type || 'Insulin'}: {item.insulin_units} U
+                    </span>
+                  ) : (
+                    <span className="text-slate-400 text-[10px] bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200 shrink-0">Check only</span>
+                  )}
+                </div>
+
+                {/* Right side: Notes & Delete Action */}
+                <div className="flex items-center justify-between sm:justify-end gap-3 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t border-dashed border-slate-200 sm:border-t-0 min-w-0">
+                  {item.notes ? (
+                    <span className="text-xs text-slate-500 font-medium italic truncate max-w-[200px]">
+                      {item.notes}
+                    </span>
+                  ) : (
+                    <span className="hidden sm:inline-block text-xs text-slate-300 font-medium italic">-</span>
+                  )}
+                  <button
+                    onClick={() => onDeleteEntry(item.id)}
+                    className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-150 active:scale-90 shrink-0 ml-auto"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
